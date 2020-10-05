@@ -1,2 +1,2 @@
-# htsc
-Hyperledger Tech Study Circle - supporting materials
+# HTSC
+Hyperledger Tech Study Circle (HTSC) - supporting materials
