@@ -1,12 +1,13 @@
 # Deploying a smart contract to a channel, the fabric chaincode lifecycle
 
-In this tutorial we are going to install the predefined abstore chaincode.
+In this tutorial we are going to install the predefined abstore chaincode. In a second step we are going to modify this chaincode and follow the chaincode upgrade process to use the modified chaincode.
 
 1. Start the network, create and join a channel
 2. Package the smart contract
 3. Install the chaincode package
 4. Approve a chaincode definition
 5. Committing the chaincode definition to the channel
+6. Upgrade the chaincode
 
 ## (1) Start the network, create and join a channel
 
@@ -20,6 +21,16 @@ tmux add -t fabric
 
 # show all logs
 docker-compose -f docker/docker-compose-test-net.yaml logs -f -t
+
+# or use the monitordocker.sh script to log chaincode prints
+cp ../commercial-paper/organization/digibank/configuration/cli/monitordocker.sh ./
+
+# start the container
+./monitordocker.sh net_test
+
+# stop the monitor
+docker stop logspout
+docker rm logspout
 
 # open a new panel
 CTRL + b \" 
@@ -39,12 +50,12 @@ docker system prune
 ./network.sh createChannel -c channel1
 ```
 
-Make sure that all comming steps are executed by a Org Admin user.
+Make sure that all comming steps are executed by a Org **Admin** user.
 
 ## (2) Package the chaincode
-Before we package the chaincode, we need to install the chaincode dependences. Navigate to the folder that contains the Go version of the chaincode.
+Before we package the chaincode, we need to install the chaincode dependencies. Navigate to the folder that contains the Go version of the chaincode.
 
-To install the smart contract dependencies, run the following command from the asset-transfer-basic/chaincode-go directory.
+To install the smart contract dependencies, run the following command from that directory.
 
 ```bash
 cd chaincode/abstore
@@ -95,13 +106,12 @@ export CORE_PEER_ADDRESS=localhost:7051
 source org1.env
 ```
 
-Issue the peer lifecycle chaincode install command to install the chaincode on the peer:
-
+Call the peer lifecycle chaincode install command to install the chaincode on the peer.
 ```bash
 peer lifecycle chaincode install abstore.tar.gz
 ```
 
-As a result we will receive the chaoncode package identifier.
+As a result we will receive the chaincode package identifier.
 ```bash
 Chaincode code package identifier: abstore_1:3918d0438fd2ebe48ed1bde01533513a14f788846fd2d72ef054482760e73409
 ```
@@ -122,13 +132,12 @@ export CORE_PEER_ADDRESS=localhost:9051
 source org2.env
 ```
 
-Issue the peer lifecycle chaincode install command to install the chaincode on the peer:
-
+Call the peer lifecycle chaincode install command to install the chaincode on the peer.
 ```bash
 peer lifecycle chaincode install abstore.tar.gz
 ```
 
-As a result we will receive the chaoncode package identifier.
+As a result we will receive the chaincode package identifier.
 ```bash
 Chaincode code package identifier: abstore_1:3918d0438fd2ebe48ed1bde01533513a14f788846fd2d72ef054482760e73409
 ```
@@ -140,7 +149,7 @@ After you install the chaincode package, you need to approve a chaincode definit
 peer lifecycle chaincode queryinstalled
 ```
 
-To apprive to the chaincode we need one more environment variable, the so-called CC_PACKAGE_ID.
+To approve to the chaincode we need one more environment variable, CC_PACKAGE_ID.
 ```bash
 export CC_PACKAGE_ID=abstore_1:3918d0438fd2ebe48ed1bde01533513a14f788846fd2d72ef054482760e73409
 ```
@@ -158,9 +167,7 @@ peer lifecycle chaincode approveformyorg
   --sequence 1 
   --tls 
   --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
-```
 
-```bash
 # command to copy
 peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID channel1 --name abstore --version 1 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 ```
@@ -175,9 +182,7 @@ peer lifecycle chaincode checkcommitreadiness
   --sequence 1 
   --tls 
   --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --output json
-```
 
-```bash
 # command to copy
 peer lifecycle chaincode checkcommitreadiness --channelID channel1 --name abstore --version 1 --sequence 1 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --output json
 ```
@@ -188,8 +193,8 @@ We have to set the environment variables for Org1.
 ```bash
 source org1.env
 ```
-The commands for the approve process and checkreadyness step are the same like Org2.
 
+The commands for the approve process and checkreadyness step are the same like Org2.
 ```bash
 # command to copy
 peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID channel1 --name abstore --version 1 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
@@ -279,6 +284,7 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 ```
 
 #### Delete an asset
+WE do not need it at this time.
 ```bash
 # command to explain
 peer chaincode invoke
@@ -294,26 +300,25 @@ peer chaincode invoke
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C channel1 -n abstore --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"delete","Args":["account2"]}'
 ```
 
-## Upgrade the chaincode
+## (6) Upgrade the chaincode
 
-Modify the chaincode
+Fist, Modify the chaincode with your IDE ot your choice.
 
-Install the smart contract dependencies.
+Second, Install the smart contract dependencies for go chaincode.
 ```bash
 cd chaincode/abstore2
 GO111MODULE=on go mod vendor
 ```
 
-To package the chaincode, we need some environment variables and change our position.
+To package the chaincode, we need some environment variables and we can change our position.
 ```bash 
 cd ../../
 export FABRIC_CFG_PATH=$PWD/../config/
 ```
 
-You can now create the new chaincode package using the peer lifecycle chaincode package command:
-
+Now you can create the new chaincode package using the peer lifecycle chaincode package command.
 ```bash 
-peer lifecycle chaincode package abstore2.tar.gz --path chaincode/abstore2/ --lang golang --label abstore_1.5
+peer lifecycle chaincode package abstore2.tar.gz --path chaincode/abstore2/ --lang golang --label abstore_1.1
 
 # inspect the tar package
 tar tfz abstore2.tar.gz
@@ -329,7 +334,7 @@ tar tfz abstore2.tar.gz
 - commit the chaincode
 
 
-#### Org1
+#### For Org1
 
 ```bash
 # execute the env file
@@ -341,22 +346,22 @@ Install the upgraded chaincode
 peer lifecycle chaincode install abstore2.tar.gz
 peer lifecycle chaincode queryinstalled
 
-# copy the packageId hash
+# copy the packageId hash and set a new env var
 export NEW_CC_PACKAGE_ID=abstore_1.5:c4fbdec55ca793ea77b91e34384297d2e0cf69da24874f628da04b5e63f9c36a
 
-peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID channel1 --name abstore --version 1.5 --package-id $NEW_CC_PACKAGE_ID --sequence 4 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID channel1 --name abstore --version 1.1 --package-id $NEW_CC_PACKAGE_ID --sequence 2 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 
-peer lifecycle chaincode checkcommitreadiness --channelID channel1 --name abstore --version 1.5 --sequence 4 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --output json
+peer lifecycle chaincode checkcommitreadiness --channelID channel1 --name abstore --version 1.1 --sequence 2 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --output json
 ```
 
-#### Org2
+#### For Org2
 
 ```bash
 # execute the env file
 source org2.env
 ```
 
-Install the upgraded chaincode
+Install the modified chaincode.
 ```bash
 peer lifecycle chaincode install abstore2.tar.gz
 peer lifecycle chaincode queryinstalled
@@ -373,20 +378,19 @@ peer lifecycle chaincode checkcommitreadiness --channelID channel1 --name abstor
 The chaincode will be upgraded on the channel after the new chaincode definition is committed. Until then, the previous chaincode will continue to run on the peers of both organizations. Org2 can use the following command to upgrade the chaincode:
 
 ```bash 
-peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID channel1 --name abstore --version 1.5 --sequence 4 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID channel1 --name abstore --version 1.1 --sequence 2 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
 
 # check with
 docker ps
 ```
 
-Try the new chaincode
-
+Try the new chaincode.
 ```bash
 # command to copy
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com  --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C channel1 -n abstore --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"Invoke","Args":["account1","account2","50"]}'
 ```
 
-Query the new assets
+Query the new assets.
 ```bash
 peer chaincode query -C channel1 -n abstore -c '{"function":"Query","Args":["account1"]}'
 peer chaincode query -C channel1 -n abstore -c '{"function":"Query","Args":["account2"]}'
