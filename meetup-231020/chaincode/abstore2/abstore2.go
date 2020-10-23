@@ -79,7 +79,9 @@ func (t *ABstore) Invoke(ctx contractapi.TransactionContextInterface, A, B strin
 	}
 	Bval, _ = strconv.Atoi(string(Bvalbytes))
 
-	//get bank value
+	// upgrade 
+	// get bank value
+	// -------------------
 	Bankvalbytes, err := ctx.GetStub().GetState(FeeHolder)
 	if err != nil {
 		return fmt.Errorf("Failed to get state")
@@ -90,7 +92,7 @@ func (t *ABstore) Invoke(ctx contractapi.TransactionContextInterface, A, B strin
 		Feecurrent, _ = strconv.Atoi(string(Bankvalbytes))
 	}
 	
-
+	// upgrade 
 	//cal the fee
 	Feeval = (X / 100 * Fee)
 
@@ -111,6 +113,7 @@ func (t *ABstore) Invoke(ctx contractapi.TransactionContextInterface, A, B strin
 	if err != nil {
 		return err
 	}
+	// upgrade 
 	var NewFeeVal int
 	NewFeeVal = Feecurrent + Feeval
 	err = ctx.GetStub().PutState(FeeHolder, []byte(strconv.Itoa(NewFeeVal)))

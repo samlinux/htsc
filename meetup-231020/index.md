@@ -25,9 +25,6 @@ docker-compose -f docker/docker-compose-test-net.yaml logs -f -t
 # or use the monitordocker.sh script to log chaincode prints
 cp ../commercial-paper/organization/digibank/configuration/cli/monitordocker.sh ./
 
-# start the container
-./monitordocker.sh net_test
-
 # stop the monitor
 docker stop logspout
 docker rm logspout
@@ -44,10 +41,15 @@ CTRL + b + d
 
 ```bash 
 # clear the system
+./network.sh down
 docker system prune 
+docker volume prune 
 
 # start the network with channel1
 ./network.sh createChannel -c channel1
+
+# start the container
+./monitordocker.sh net_test
 ```
 
 Make sure that all comming steps are executed by a Org **Admin** user.
@@ -347,7 +349,7 @@ peer lifecycle chaincode install abstore2.tar.gz
 peer lifecycle chaincode queryinstalled
 
 # copy the packageId hash and set a new env var
-export NEW_CC_PACKAGE_ID=abstore_1.5:c4fbdec55ca793ea77b91e34384297d2e0cf69da24874f628da04b5e63f9c36a
+export NEW_CC_PACKAGE_ID=abstore_1.1:a8a1ca7f533fb7a21281a44ac4e6999522c891a2aa4bf3371b13580047a3447f
 
 peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID channel1 --name abstore --version 1.1 --package-id $NEW_CC_PACKAGE_ID --sequence 2 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 
@@ -367,7 +369,7 @@ peer lifecycle chaincode install abstore2.tar.gz
 peer lifecycle chaincode queryinstalled
 
 # copy the packageId hash
-export NEW_CC_PACKAGE_ID=abstore_1.1:0a9c434fe75915443f6eb95bb9d68da9706452d2ac320c8a0dda9c67d1759bec
+export NEW_CC_PACKAGE_ID=abstore_1.1:a8a1ca7f533fb7a21281a44ac4e6999522c891a2aa4bf3371b13580047a3447f
 
 peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID channel1 --name abstore --version 1.1 --package-id $NEW_CC_PACKAGE_ID --sequence 2 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 
@@ -387,7 +389,7 @@ docker ps
 Try the new chaincode.
 ```bash
 # command to copy
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com  --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C channel1 -n abstore --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"Invoke","Args":["account1","account2","50"]}'
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com  --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C channel1 -n abstore --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"Invoke","Args":["account1","account2","500"]}'
 ```
 
 Query the new assets.
