@@ -163,7 +163,7 @@ peer lifecycle chaincode approveformyorg
   -o localhost:7050 
   --ordererTLSHostnameOverride orderer.example.com 
   --channelID channel1 
-  --name asbtore 
+  --name abstore 
   --version 1
   --package-id $CC_PACKAGE_ID 
   --sequence 1 
