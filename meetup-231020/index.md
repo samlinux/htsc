@@ -398,3 +398,4 @@ peer chaincode query -C channel1 -n abstore -c '{"function":"Query","Args":["acc
 peer chaincode query -C channel1 -n abstore -c '{"function":"Query","Args":["account2"]}'
 peer chaincode query -C channel1 -n abstore -c '{"function":"Query","Args":["bank"]}'
 ```
+
