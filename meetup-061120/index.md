@@ -79,7 +79,6 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 # query an asset
 peer chaincode query -C mychannel -n basic -c '{"function":"ReadAsset","Args":["asset1"]}'
 
-
 # transfer an asset
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"TransferAsset","Args":["asset1","roland"]}'
 
@@ -88,4 +87,60 @@ peer chaincode query -C mychannel -n basic -c '{"function":"ReadAsset","Args":["
 ```
 
 ## Internal CC
+
+## Install chaincode abstore on mychannel
+
+```bash
+cd ../chaincode/abstore/go/
+GO111MODULE=on go mod vendor
+
+cd ../../../test-network/
+peer lifecycle chaincode package abstore.tar.gz --path ../chaincode/abstore/go/ --lang golang --label abstore_1
+
+# install one peer0 Org1
+setGlobals 1
+peer lifecycle chaincode install abstore.tar.gz
+
+# install one peer0 Org2
+setGlobals 2
+peer lifecycle chaincode install abstore.tar.gz
+
+
+# check installed chaincode and get PKID
+setGlobals 1
+peer lifecycle chaincode queryinstalled --peerAddresses localhost:7051 --tlsRootCertFiles organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+
+#Installed chaincodes on peer:
+#Package ID: basic:524d01db7699b85fa9ba802d8811d39f6b30c93c42afd788464f716ef99aa610, Label: basic
+#Package ID: abstore_1:3918d0438fd2ebe48ed1bde01533513a14f788846fd2d72ef054482760e73409, Label: abstore_1
+
+export PKGID=abstore_1:3918d0438fd2ebe48ed1bde01533513a14f788846fd2d72ef054482760e73409
+
+# approve for Org1
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $PWD/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --channelID mychannel --name abstore --version 1 --package-id $PKGID --sequence 1
+
+# approve for Org2
+setGlobals 2
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $PWD/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --channelID mychannel --name abstore --version 1 --package-id $PKGID --sequence 1
+
+# commit the CC
+peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $PWD/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --channelID mychannel --name abstore --peerAddresses localhost:7051 --tlsRootCertFiles $PWD/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt --version 1 --sequence 1
+```
+
+### Use the internal CC
+
+```bash
+# call the invoke
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n abstore --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"Init","Args":["account1","1000","account2","10"]}'
+
+# query the CC
+peer chaincode query -C mychannel -n abstore -c '{"function":"Query","Args":["account1"]}'
+peer chaincode query -C mychannel -n abstore -c '{"function":"Query","Args":["account2"]}'
+
+# invoke the CC
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com  --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n abstore --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"Invoke","Args":["account1","account2","100"]}'
+
+```
+
 
