@@ -20,10 +20,19 @@ read more https://github.com/GoogleCloudPlatform/buildpacks
 ```bash
 git clone https://github.com/GoogleCloudPlatform/buildpack-samples.git
 cd buildpack-samples/sample-go
+pack suggest-builders
+
+pack build --builder heroku/buildpacks:18 hello-roland
 pack build --builder gcr.io/buildpacks/builder:v1 hello-roland
 
 docker run --rm -p 4000:8080 hello-roland
 curl localhost 4000
+
+# node.js example
+cd buildpack-samples/sample-node
+pack build --builder gcr.io/buildpacks/builder:v1 web:1
+docker run --rm -p 3000:3000 web
+
 ```
 
 # External chancode lancher with TLS

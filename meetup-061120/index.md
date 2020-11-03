@@ -16,6 +16,27 @@ cp chaincode.env ../../test-network/
 ```
 
 ### Start the network
+
+Modify the config.core.yaml file (config/core.yaml).
+
+#### Edit config/core.yaml
+```bash 
+externalBuilders:
+    - path: /opt/gopath/src/github.com/hyperledger/fabric-samples/asset-transfer-basic/chaincode-external/sampleBuilder
+      name: external-sample-builder
+```
+
+Modify the docker-compose.yaml file (docker/docker-compose-test-net.yaml).
+
+#### Edit docker-compose-test-net.yaml
+
+Add these two volumns by both peers
+```bash 
+- ../..:/opt/gopath/src/github.com/hyperledger/fabric-samples
+- ../../config/core.yaml:/etc/hyperledger/fabric/core.yaml
+```
+
+
 ```bash
 # switch to the target folder
 cd ../../test-network
@@ -49,9 +70,17 @@ export PKGID=basic:524d01db7699b85fa9ba802d8811d39f6b30c93c42afd788464f716ef99aa
 vi chaincode.env
 ```
 
+### Build a new CC container
+
+```bash
+cd ../asset-transfer-basic/chaincode-external
+docker build -t hyperledger/asset-transfer-basic .
+```
+
 ### Start the external CC container
 ```bash 
 docker run -d -it --rm --name asset-transfer-basic.org1.example.com --hostname asset-transfer-basic.org1.example.com --env-file chaincode.env --network=net_test hyperledger/asset-transfer-basic
+cd ../../test-network/
 ```
 
 ### Approve the CC
@@ -140,7 +169,57 @@ peer chaincode query -C mychannel -n abstore -c '{"function":"Query","Args":["ac
 
 # invoke the CC
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com  --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n abstore --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"Invoke","Args":["account1","account2","100"]}'
-
 ```
 
+## Demonstration Google Cloud buildpacks
+### Install Pack
 
+See https://buildpacks.io/docs/ 
+
+```bash
+# install pack
+
+(curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.14.2/pack-v0.14.2-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+
+# modify .bashrc and reload it
+. $(pack completion)
+
+# install go packages
+go get -u github.com/buildpacks/pack  
+```
+
+### Demo buildpacks
+read more https://github.com/GoogleCloudPlatform/buildpacks
+
+```bash
+# get some samples
+cd
+mkdir cloudbuilds 
+cd cloudbuilds
+
+git clone https://github.com/GoogleCloudPlatform/buildpack-samples.git
+pack suggest-builders
+
+# ------------------------
+# node.js example
+# ------------------------
+cd buildpack-samples/sample-node
+pack build --builder=gcr.io/buildpacks/builder sample-node
+docker run -d -it -ePORT=8080 -p8080:8080 --name sample-node sample-node
+curl localhost:8080
+
+## rebase an image
+pack rebase sample-node
+
+# ------------------------
+# Option A, golang example
+# ------------------------
+cd buildpack-samples/sample-go
+
+pack build --builder heroku/buildpacks:18 hello-roland
+pack build --builder gcr.io/buildpacks/builder:v1 hello-roland
+
+docker run --rm -p 4000:8080 hello-roland
+curl localhost 4000
+
+```
