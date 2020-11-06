@@ -7,6 +7,7 @@ cd fabric/fabric-samples/asset-transfer-basic/chaincode-external/
 
 # Inspect the connection.json file
 # Inspect the chaincode.env file
+# Inspect the metadata.json file
 
 tar cfz code.tar.gz connection.json
 tar cfz asset-transfer-basic-external.tgz metadata.json code.tar.gz
@@ -64,7 +65,7 @@ peer lifecycle chaincode install ../asset-transfer-basic/chaincode-external/asse
 setGlobals 1
 peer lifecycle chaincode queryinstalled --peerAddresses localhost:7051 --tlsRootCertFiles organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
 
-export PKGID=basic:524d01db7699b85fa9ba802d8811d39f6b30c93c42afd788464f716ef99aa610
+export PKGID=basic:79c332c70a6a7381ae06eb892daf115afaedf7dca1515270f932072f06681a39
 
 # edit chaincode.env and change CHAINCODE_ID value to PKID
 vi chaincode.env
@@ -96,10 +97,17 @@ peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameO
 
 ### Commit the external CC
 ```bash
+
+# check 
+peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name basic --version 1.0 --sequence 1 --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --output json
+
+#commit
 peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $PWD/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --channelID mychannel --name basic --peerAddresses localhost:7051 --tlsRootCertFiles $PWD/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt --version 1.0 --sequence 1
 ```
 
 ### Use the external CC
+It is time to look into the chaincode.
+
 
 ```bash
 # call the InitLedger function
@@ -208,8 +216,12 @@ pack build --builder=gcr.io/buildpacks/builder sample-node
 docker run -d -it -ePORT=8080 -p8080:8080 --name sample-node sample-node
 curl localhost:8080
 
+# check running containers
+docker ps --format '{{ .ID }}\t{{.Status}}\t{{ .Names }}'
+
 ## rebase an image
 pack rebase sample-node
+
 
 # ------------------------
 # Option A, golang example
