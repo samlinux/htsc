@@ -4,7 +4,7 @@
 - Is the first channel that is created in a Fabric network.
 - There is only one system channel.
 - It defines the set of ordering nodes that form the ordering service.
-- It efines the set of organizations that serve as ordering service administrators.
+- It defines the set of organizations that serve as ordering service administrators.
 - It defines the organizations that are members of blockchain consortium.
 - The consortium is a set of peer organizations that belong to the system channel, but are not administrators of the ordering service. Consortium members have the ability to create new channels and include other consortium organizations as channel members.
 - The genesis block of the system channel is required to deploy a new ordering service. 
@@ -61,7 +61,6 @@ export ORDERER_CA=organizations/ordererOrganizations/example.com/tlsca/tlsca.exa
 # create channel transaction
 configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME -configPath ./configtx/
 
-
 # create anchor peer transaction
 # for Org1 and Org2
 configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP -configPath ./configtx/
@@ -73,7 +72,6 @@ configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts
 setGlobals 1
 
 peer channel create -o localhost:7050 -c $CHANNEL_NAME --ordererTLSHostnameOverride orderer.example.com -f ./channel-artifacts/${CHANNEL_NAME}.tx --outputBlock ./channel-artifacts/${CHANNEL_NAME}.block --tls --cafile $ORDERER_CA 
-
 
 ## join the channel
 # join peer0.org1.example.co
@@ -88,7 +86,6 @@ peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block
 setGlobals 1
 
 ## update the updateAnchorPeers
-
 peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ./channel-artifacts/Org1MSPanchors.tx --tls --cafile $ORDERER_CA
 
 setGlobals 2
@@ -112,7 +109,6 @@ peer lifecycle chaincode install abstore.tar.gz
 # install one peer0 Org2
 setGlobals 2
 peer lifecycle chaincode install abstore.tar.gz
-
 
 # check installed chaincode and get PKID
 setGlobals 1
@@ -165,6 +161,7 @@ OneOrgsChannel:
 ```
 
 ```bash
+# set some environment vars
 export CHANNEL_NAME=org1channel
 export ORDERER_CA=../test-network/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
 export FABRIC_CFG_PATH=$PWD/../config/
@@ -178,7 +175,6 @@ configtxgen --inspectChannelCreateTx channel-artifacts/org1channel.tx
 configtxgen --inspectChannelCreateTx channel-artifacts/mychannel.tx
 
 configtxgen --inspectChannelCreateTx channel-artifacts/mychannel.tx | jq .payload.data.config_update.read_set
-
 
 # create createChannel
 . ./scripts/envVar.sh
@@ -280,5 +276,13 @@ peer chaincode query -C mychannel -n basic -c '{"function":"ReadAsset","Args":["
 
 # update an asset
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"UpdateAsset","Args":["asset1","green","10","Roland","700"]}'
+
+```
+
+## How many blocks are in a channel?
+```bash
+
+peer channel getinfo -c mychannel
+peer channel getinfo -c org1channel
 
 ```
