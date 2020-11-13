@@ -222,7 +222,6 @@ docker ps --format '{{ .ID }}\t{{.Status}}\t{{ .Names }}'
 ## rebase an image
 pack rebase sample-node
 
-
 # ------------------------
 # Option A, golang example
 # ------------------------
