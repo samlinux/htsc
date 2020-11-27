@@ -180,7 +180,7 @@ export FABRIC_CFG_PATH=$PWD/../config/
 # create channel transaction
 configtxgen -profile OneOrgsChannel -outputCreateChannelTx ./channel-artifacts/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME -configPath ./configtx/
 
-# inspect and compare boath *.tx files
+# inspect and compare both *.tx files
 # watch the difference between the read_set and the write_set
 configtxgen --inspectChannelCreateTx channel-artifacts/org1channel.tx
 configtxgen --inspectChannelCreateTx channel-artifacts/mychannel.tx
