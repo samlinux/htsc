@@ -24,11 +24,11 @@ rm -Rf channel-artifacts
 cp ../test-network/configtx/* configtx/
 cp ../test-network/docker/docker-compose-test-net.yaml ./docker-compose.yaml
 ```
-## Prepare the configtx.yaml
-Modify the configtx.yaml file.
-
 ## Create crypto-config.yaml file
 Create a crypto-config.yaml file for the cryptogen tool.
+
+## Prepare the configtx.yaml
+Modify the configtx.yaml file.
 
 ## Generate artifacts
 
@@ -40,8 +40,8 @@ export FABRIC_CFG_PATH=$PWD/configtx
 export CHANNEL_NAME=channel1 
 export SYS_CHANNEL_NAME=sys-channel 
 
-# Generate the artifacts
-cryptogen generate --output organizations --config=./crypto-config.yaml
+# Generate the artifacts (identities)
+cryptogen generate --config=./crypto-config.yaml --output organizations
 
 # create channel-artifacts and system-genesis-block folder
 mkdir channel-artifacts
@@ -53,7 +53,7 @@ configtxgen -profile ThreeOrgsOrdererGenesis -channelID $SYS_CHANNEL_NAME -outpu
 # create a Channel Configuration Transaction
 configtxgen -profile ThreeOrgsChannel -outputCreateChannelTx ./channel-artifacts/channel_$CHANNEL_NAME.tx -channelID $CHANNEL_NAME
 
-# define the anchor peer transactions for each peer org
+# create the anchor peer transactions for each peer org
 configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
 
 configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
