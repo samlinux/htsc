@@ -1,5 +1,5 @@
 # How to create your own fabric network
-In this guide you will create a three org fabric network with a one node RAFT orderer.  
+In this guide you will create a **persistent** three org fabric network with a one node RAFT orderer.  
 
 We need the following files:
 
@@ -21,14 +21,26 @@ rm -Rf channel-artifacts
 rm -Rf channel-artifacts
 
 # copy some file from the test-network
+mkdir configtx
 cp ../test-network/configtx/* configtx/
 cp ../test-network/docker/docker-compose-test-net.yaml ./docker-compose.yaml
 ```
 ## Create crypto-config.yaml file
 Create a crypto-config.yaml file for the cryptogen tool.
 
+```bash
+vi crypto-config.yaml
+cat ../test-network/organizations/cryptogen/crypto-config-orderer.yaml >> crypto-config.yaml
+cat ../test-network/organizations/cryptogen/crypto-config-org1.yaml >> crypto-config.yaml
+
+# extend org2 + org3
+```
 ## Prepare the configtx.yaml
 Modify the configtx.yaml file.
+
+Section Organizations; add Org3    
+Section Profile; add ThreeOrgsOrdererGenesis, ThreeOrgsChannel profile
+
 
 ## Generate artifacts
 
@@ -70,6 +82,19 @@ tree ./system-genesis-block
 ## Start network
 Modify the docker-compose-yaml file. Please note the CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE docker variable and also the .env file. 
 
+```bash
+- CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_own-network
+
+vi .env
+COMPOSE_PROJECT_NAME=own-network
+IMAGE_TAG=latest
+SYS_CHANNEL=system-channel
+
+# !! chnage the network name as well to own-network
+networks:
+  - own-network
+```
+
 ```bash 
 # terminal 1
 # start the network as a foreground process (we work with two terminals)
@@ -91,6 +116,16 @@ export ORDERER_CA=${PWD}/organizations/ordererOrganizations/example.com/orderers
 - create org2.env
 - create org3.env
 
+vi org1.env
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+export CORE_PEER_ADDRESS=localhost:7051
+export FABRIC_CFG_PATH=$PWD/../config/
+
+# do this also for org2.env and org3.env
+
 # switch to the org1 env
 source org1.env
 
@@ -99,6 +134,8 @@ peer channel create -o localhost:7050 -c $CHANNEL_NAME --ordererTLSHostnameOverr
 
 # join org1 to channel
 peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block
+
+## check the result with  peer channel list
 
 # join org2 to channel
 source org2.env
@@ -111,7 +148,6 @@ peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block
 # update anchor peer per org
 
 source org1.env
-export FABRIC_CFG_PATH=$PWD/../config/
 peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ./channel-artifacts/Org1MSPanchors.tx --tls --cafile $ORDERER_CA 
 
 source org2.env
@@ -121,19 +157,31 @@ source org3.env
 peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ./channel-artifacts/Org3MSPanchors.tx --tls --cafile $ORDERER_CA 
 ```
 
+We are ready with the network and channel configuration. At this point we can start installing some chaincode.
+
 
 # Install Chaincode
 As a demo we are going to use the abstore chaincode example.
 
 ```bash
+mkdir chaincode
+cp -r ../chaincode/abstore/go/ chaincode/abstore/
+
+# if needed
+rm -r  chaincode/abstore/vendor
+
 cd ./chaincode/abstore
-# install go dependencies
+
+# install (external) go dependencies
 GO111MODULE=on go mod vendor
 
 ## fabric chaincode lifecycle
 # step 1 - package the chaincode
-cd ../
+cd ../../
 peer lifecycle chaincode package basic.tar.gz --path ./chaincode/abstore/ --lang golang --label basic_1
+
+# check the content 
+tar -tvf basic.tar.gz
 
 # install CC on peer0 Org1
 source org1.env
@@ -196,3 +244,27 @@ source org3.env
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA -C $CHANNEL_NAME -n basic --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt  --peerAddresses localhost:10051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt -c '{"function":"Invoke","Args":["account1","account2","100"]}'
 
 ```
+
+# A persistent network
+```bash
+# stop the network
+docker-compose down 
+
+# start the network in the background
+docker-compose up -d
+
+# show the logs
+docker-compose logs -f -t
+
+# Notice that your system is persistent and you can start the network as long you clean up the docker volumns
+docker volume ls
+docker volume prune
+
+# check your containers
+## to see the network
+docker-compose ps
+
+## to see the chaincode-container as well
+docker ps
+
+````
