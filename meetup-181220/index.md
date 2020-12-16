@@ -256,7 +256,7 @@ docker-compose up -d
 # show the logs
 docker-compose logs -f -t
 
-# Notice that your system is persistent and you can start the network as long you clean up the docker volumns
+# Notice that your system is persistent and you can start the network as long as you not clean up the docker volumes.
 docker volume ls
 docker volume prune
 
