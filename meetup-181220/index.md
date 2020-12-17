@@ -9,18 +9,18 @@ We need the following files:
 
 ## Preparation
 ```bash
-# here we are - base folder pwd shows
+# here we are - base folder pwd shows our current location
 fabric-samples/
 
 # create a new base folder into the fabric-samples folder
 mkdir own-network
 
-#  Cleaning things up 
+#  Cleaning things up, if necessary
 rm -Rf organizations
 rm -Rf channel-artifacts
 rm -Rf channel-artifacts
 
-# copy some file from the test-network
+# copy some files from the test-network
 mkdir configtx
 cp ../test-network/configtx/* configtx/
 cp ../test-network/docker/docker-compose-test-net.yaml ./docker-compose.yaml
@@ -38,8 +38,8 @@ cat ../test-network/organizations/cryptogen/crypto-config-org1.yaml >> crypto-co
 ## Prepare the configtx.yaml
 Modify the configtx.yaml file.
 
-Section Organizations; add Org3    
-Section Profile; add ThreeOrgsOrdererGenesis, ThreeOrgsChannel profile
+Section Organizations; add new Org3    
+Section Profile; add new profiles: ThreeOrgsOrdererGenesis, ThreeOrgsChannel
 
 
 ## Generate artifacts
@@ -48,7 +48,7 @@ Section Profile; add ThreeOrgsOrdererGenesis, ThreeOrgsChannel profile
 # tell the configtxgen tool where to look for the configtx.yaml file
 export FABRIC_CFG_PATH=$PWD/configtx
 
-# the name of the channel
+# the name of the channels
 export CHANNEL_NAME=channel1 
 export SYS_CHANNEL_NAME=sys-channel 
 
@@ -65,14 +65,14 @@ configtxgen -profile ThreeOrgsOrdererGenesis -channelID $SYS_CHANNEL_NAME -outpu
 # create a Channel Configuration Transaction
 configtxgen -profile ThreeOrgsChannel -outputCreateChannelTx ./channel-artifacts/channel_$CHANNEL_NAME.tx -channelID $CHANNEL_NAME
 
-# create the anchor peer transactions for each peer org
+# create the Anchor Peer Transactions for each peer org
 configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
 
 configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
 
 configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org3MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org3MSP
 
-# finally check for work
+# finally check your work
 tree ./organizations -L 2
 tree ./channel-artifacts
 tree ./system-genesis-block
@@ -90,14 +90,14 @@ COMPOSE_PROJECT_NAME=own-network
 IMAGE_TAG=latest
 SYS_CHANNEL=system-channel
 
-# !! chnage the network name as well to own-network
+# !! change the network name as well to own-network
 networks:
   - own-network
 ```
 
 ```bash 
 # terminal 1
-# start the network as a foreground process (we work with two terminals)
+# start the network as a foreground process (we work with two terminals) to see the logs
 docker-compose up
 ```
 
@@ -161,7 +161,7 @@ We are ready with the network and channel configuration. At this point we can st
 
 
 # Install Chaincode
-As a demo we are going to use the abstore chaincode example.
+As a demo we are going to use the ABstore chaincode example.
 
 ```bash
 mkdir chaincode
@@ -215,11 +215,10 @@ peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name b
 source org3.env
 peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name basic --version 1 --package-id $PKGID --sequence 1
 
-
 # commit the CC
 source org1.env
 
-# note it is important to send the commit statement to at least 2 orgs, because of the chaincode endorsement lifecyle rule: MAJORITY
+# Note it is important to send the commit statement to at least 2 orgs, because of the default chaincode endorsement lifecyle rule: MAJORITY
 
 peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID $CHANNEL_NAME --name basic --version 1 --sequence 1 --tls --cafile $ORDERER_CA --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt --peerAddresses localhost:10051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt
 
