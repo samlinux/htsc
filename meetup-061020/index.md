@@ -172,7 +172,7 @@ tmux add -t fabric
 docker-compose -f docker/docker-compose-test-net.yaml logs -f -t
 
 # open a new panel
-CTRL + b \" 
+CTRL + b (release pressed keys) + "
 
 # jump between panels
 CTRL + b + q 1
