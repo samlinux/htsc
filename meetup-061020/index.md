@@ -15,7 +15,7 @@ The following steps are required to prepare the Droplet.
 apt update && apt upgrade
 
 # install some useful helpers
-apt install tree jq
+apt install tree jq gcc make
 
 # it's always good the use the right time
 # so setup the correct timezone
@@ -30,7 +30,7 @@ The following steps are required to install docker on the Droplet. Reference: ht
 
 ```bash
 # set up the repository
-sudo apt-get install \
+sudo apt install \
   apt-transport-https \
   ca-certificates \
   curl \
@@ -48,8 +48,8 @@ sudo add-apt-repository \
   stable"
 
 # install docker engine
-apt-get update
-apt-get install docker-ce docker-ce-cli containerd.io
+apt update
+apt install docker-ce docker-ce-cli containerd.io
 
 # check the docker version
 docker --version
@@ -61,7 +61,7 @@ Reference https://docs.docker.com/compose/install/
 
 ```bash
 # install docker-compose
-sudo curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
 # apply executable permissions to the binary
 sudo chmod +x /usr/local/bin/docker-compose
@@ -76,14 +76,13 @@ Hyperledger Fabric uses the Go Programming Language for many of its components. 
 ```bash 
 # download and extract go
 # latest version 04.10.20 1.14.9
-sudo wget -c https://dl.google.com/go/go1.14.9.linux-amd64.tar.gz -O - | tar -xz -C /usr/local
+wget -c https://dl.google.com/go/go1.14.9.linux-amd64.tar.gz -O - | tar -xz -C /usr/local
 
 # add the go binary to the path
-vi $HOME/.profile
-export PATH="$PATH:/usr/local/go/bin:/root/fabric/fabric-samples/bin"
+echo 'export PATH="$PATH:/usr/local/go/bin:/root/fabric/fabric-samples/bin"' >> $HOME/.profile
 
 # point the GOPATH env var to the base fabric workspace folder
-export GOPATH=$HOME/fabric
+echo 'export GOPATH="$HOME/fabric"' >> $HOME/.profile
 
 # reload the profile
 source $HOME/.profile
@@ -99,14 +98,13 @@ printenv | grep PATH
 
 ```bash
 # add PPA from NodeSource
-# curl -sL https://deb.nodesource.com/setup_10.x -o nodesource_setup.sh 
 curl -sL https://deb.nodesource.com/setup_12.x -o nodesource_setup.sh
 
 # call the install script
-sudo bash nodesource_setup.sh
+. nodesource_setup.sh
 
 # install node.js
-sudo apt-get install -y nodejs
+apt-get install -y nodejs
 
 # check the version
 node -v
@@ -122,10 +120,12 @@ cd fabric
 # curl -sSL http://bit.ly/2ysbOFE | bash -s -- <fabric_version> <fabric-ca_version> <thirdparty_version>
 
 # curl -sSL http://bit.ly/2ysbOFE | bash -s -- 1.4.6 1.4.6 0.4.18
-# curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.2.1 1.4.9
 
-# latest production ready release, omit all version identifiers.
-curl -sSL https://bit.ly/2ysbOFE | bash -s
+# latest production ready release, omit all version identifiers
+# curl -sSL https://bit.ly/2ysbOFE | bash -s
+
+# we use 2.2 in our examples
+curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.2.1 1.4.9
 
 # check downloaded images
 docker images

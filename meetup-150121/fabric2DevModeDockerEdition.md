@@ -4,6 +4,9 @@ In this tutorial we are going to compose a docker based network for chaincode de
 ## Preparation
 
 ```bash
+# I start in the fabric-samples folder
+cd fabric-samples
+
 mkdir dev-network && cd dev-network
 
 # make sure you have cloned the fabric git repro to some place you know
@@ -40,7 +43,7 @@ We are ready with the preparations.
 ## Create artifacts
 
 ```bash 
-# in terminal 0
+# in terminal 1
 # set the FABRIC_CFG_PATH environment variable to point to the sampleconfig folder
 export FABRIC_CFG_PATH=$(pwd)/sampleconfig
 
@@ -53,14 +56,14 @@ configtxgen -channelID ch1 -outputCreateChannelTx $(pwd)/artifacts/ch1.tx -profi
 
 ## Start the network
 ```bash
-# in terminal 0
+# in terminal 1
 docker-compose up
 ```
 
 ## Create and join Channel ch1
 
 ```bash
-# in terminal 1
+# in terminal 2
 export FABRIC_CFG_PATH=$(pwd)/sampleconfig
 
 # create the channel ch1
@@ -87,7 +90,7 @@ cd chaincode
 go build -o saac ./
 
 # Start the chaincode
-# in terminal 1
+# in terminal 2
 CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./sacc -peer.address 127.0.0.1:7052
 CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./atbcc -peer.address 127.0.0.1:7052
 ```
@@ -96,7 +99,7 @@ CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME
 This step has to be done only once.
 
 ```bash
-# in terminal 2
+# in terminal 3
 export FABRIC_CFG_PATH=$(pwd)/sampleconfig
 
 peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id mycc:1.0
@@ -132,14 +135,14 @@ CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 
 Notice you network is persistent. We can stop and start the network at any time we want.
 
 ```bash
-# in terminal 2
+# in terminal 3
 docker-compose down
 ```
 
 ## Continue your Chaincode work
 ```bash
 # ----------------------------------------------
-# in terminal 0 - start the network
+# in terminal 1 - start the network
 # ----------------------------------------------
 docker-compose up 
 
@@ -147,7 +150,7 @@ docker-compose up
 docker-compose up -d && docker-compose logs -f -t
 
 # ----------------------------------------------
-# in terminal 1 - bind and start the chaincode
+# in terminal 2 - bind and start the chaincode
 # ----------------------------------------------
 # make sure you are in your chaincode folder
 # $(PWD) => chaincode/saac
@@ -155,7 +158,7 @@ docker-compose up -d && docker-compose logs -f -t
 CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./sacc -peer.address 127.0.0.1:7052
 
 # ----------------------------------------------
-# in terminal 2 - test your chaincode
+# in terminal 3 - test your chaincode
 # ----------------------------------------------
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["","k1"]}'
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["","k2"]}'

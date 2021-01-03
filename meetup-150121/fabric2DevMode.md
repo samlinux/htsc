@@ -1,28 +1,52 @@
 # Fabric 2.2 Chaincode Devmode Environment - Binary Edition
-In this tutorial you will learn how you can enable the so called **peer devmode** for chaincode development. The devmode is running with binaries **without** docker containers.
+In this tutorial you will learn how you can enable the so called **peer devmode** for chaincode development. The devmode is running with binaries and **without** docker containers.
 
-## Set up environment
+For the next steps we need four terminals. You can use four different ssh terminals or one tmux terminal with four panels as well. 
+
+## Set up the development environment
+
 ```bash
 mkdir fabricDev
 cd fabricDev
+# clone the latest fabric repro
 git clone https://github.com/hyperledger/fabric.git
 
+# switch onto this folder
 cd fabric
 
-# place to store the artifacts
+# create a place to store the artifacts
 mkdir artifacts
 
-# make sure you have the gcc (gnu compiler collection) installed on your system, if not install it
-apt install gcc
+# create a place to store our chaincodes
+mkdir chaincode
+```
+At this time you should have a folder structure like the following:
 
+```bash
+root@fabric-04:~/fabricDev# tree -L 1 .
+.
+├── artifacts
+├── chaincode
+└── fabric
+```
+
+```bash
+# as a next step you have to build the binaries
 # run the following commands to build the binaries for orderer, peer, and configtxgen
+## we switch into the fabric-folder
+cd fabric
+
+## build (make sure you have installed gcc and make)
 make orderer peer configtxgen
 
-# set the PATH environment variable to include orderer and peer binaries:
-export PATH=$(pwd)/build/bin:$PATH
+## if you are ready then go back
+cd ../
 
-# set the FABRIC_CFG_PATH environment variable to point to the sampleconfig folder
-export FABRIC_CFG_PATH=$(pwd)/sampleconfig
+# set the PATH environment variable to include orderer and peer binaries
+export PATH=$(pwd)/fabric/build/bin:$PATH
+
+# set the FABRIC_CFG_PATH environment variable to point to the sampleconfig folder and MSP
+export FABRIC_CFG_PATH=$(pwd)/fabric/sampleconfig
 
 # generate the genesis block for the ordering service
 configtxgen -profile SampleDevModeSolo -channelID syschannel -outputBlock genesisblock -configPath $FABRIC_CFG_PATH -outputBlock $(pwd)/artifacts/genesis.block
@@ -31,17 +55,17 @@ configtxgen -profile SampleDevModeSolo -channelID syschannel -outputBlock genesi
 ## Start the orderer
 ```bash
 # in terminal 0
-export PATH=$(pwd)/build/bin:$PATH
-export FABRIC_CFG_PATH=$(pwd)/sampleconfig
+export PATH=$(pwd)/fabric/build/bin:$PATH
+export FABRIC_CFG_PATH=$(pwd)/fabric/sampleconfig
 
 ## version with environment variables
-export ORDERER_GENERAL_GENESISFILE=$(pwd)/artifacts/genesisblock
+export ORDERER_GENERAL_GENESISFILE=$(pwd)/artifacts/genesis.block
 export ORDERER_FILELEDGER_LOCATION=$(pwd)/data/orderer
 export ORDERER_GENERAL_GENESISPROFILE=SampleDevModeSolo 
 orderer
 
 ## version in a single command
-ORDERER_GENERAL_GENESISFILE=$(pwd)/artifacts/genesisblock ORDERER_FILELEDGER_LOCATION=$(pwd)/data/orderer ORDERER_GENERAL_GENESISPROFILE=SampleDevModeSolo orderer
+ORDERER_GENERAL_GENESISFILE=$(pwd)/artifacts/genesis.block ORDERER_FILELEDGER_LOCATION=$(pwd)/data/orderer ORDERER_GENERAL_GENESISPROFILE=SampleDevModeSolo orderer
 ```
 
 ## Start the peer in DevMode
@@ -49,8 +73,8 @@ ORDERER_GENERAL_GENESISFILE=$(pwd)/artifacts/genesisblock ORDERER_FILELEDGER_LOC
 # in terminal 1
 # Open another terminal window and set the required environment variables to override the peer configuration and start the peer node. Starting the peer with the --peer-chaincodedev=true flag puts the peer into DevMode.
 
-export PATH=$(pwd)/build/bin:$PATH
-export FABRIC_CFG_PATH=$(pwd)/sampleconfig
+export PATH=$(pwd)/fabric/build/bin:$PATH
+export FABRIC_CFG_PATH=$(pwd)/fabric/sampleconfig
 
 # we have to modify core.yaml and change the port to 10443, because 9443 is double used between the orderer and the peer (operations services)
 
@@ -69,8 +93,8 @@ CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:10443 CORE_PEER_FILESYSTEMPATH=$(pwd)/data
 ## Create the channel ch1
 ```bash
 # in terminal 2
-export PATH=$(pwd)/build/bin:$PATH
-export FABRIC_CFG_PATH=$(pwd)/sampleconfig
+export PATH=$(pwd)/fabric/build/bin:$PATH
+export FABRIC_CFG_PATH=$(pwd)/fabric/sampleconfig
 
 configtxgen -channelID ch1 -outputCreateChannelTx $(pwd)/artifacts/ch1.tx -profile SampleSingleMSPChannel -configPath $FABRIC_CFG_PATH
 
@@ -86,14 +110,23 @@ peer channel join -b $(pwd)/artifacts/ch1.block
 ```
 
 ## Build the chaincode
+Now it is time to use your chaincode.
+
 ```bash 
 # We use the simple chaincode from the fabric/integration/chaincode directory to demonstrate how to run a chaincode package in DevMode. 
-# GO111MODULE=on go mod vendor 
-go build -o simpleChaincode ./integration/chaincode/simple/cmd
+cp -R ../fabric/fabric-samples/chaincode/sacc/ chaincode
+cd chaincode/sacc
+
+#go mod init chaincode
+G111MODULE=on go mod vendor 
+go build -o simpleChaincode 
 ```
 
 ## Start the Chaincode
 ```bash 
+
+export DEVMODE_ENABLED=true
+
 # in terminal 3
 CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./simpleChaincode -peer.address 127.0.0.1:7052
 
@@ -104,8 +137,8 @@ CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME
 ```bash 
 # in terminal 4
 
-export PATH=$(pwd)/build/bin:$PATH
-export FABRIC_CFG_PATH=$(pwd)/sampleconfig
+export PATH=$(pwd)/fabric/build/bin:$PATH
+export FABRIC_CFG_PATH=$(pwd)/fabric/sampleconfig
 
 peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id mycc:1.0
 
@@ -118,28 +151,66 @@ peer lifecycle chaincode commit -o 127.0.0.1:7050 --channelID ch1 --name mycc --
 
 ```bash
 # in terminal 4
-CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["init","a","100","b","200"]}' --isInit
-CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["invoke","a","b","10"]}'
-CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["query","a"]}'
+## calls the init function
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["msg","Hello"]}'  --isInit
+
+# querys the key
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["","msg"]}'
+
+# set new value
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["set","msg2","Hello2"]}'  
+
 ```
 
-## Leave the running tmux session
+## Modify your Chaincode
+Stop the chaincode in terminal 2.
+```bash 
+CTRL + c
+```
 
+Modify the chaincode e.g. add some debug values. Add the following snippet into the get function (befor the return command).
+```
+if os.Getenv("DEVMODE_ENABLED") != "" {
+  fmt.Printf("Asset: %s\n",args[0])
+}
+
+# add the os package to the import statement
+"os"
+```
+
+Build your chaincode again.
 ```bash
+go build -o simpleChaincode
+```
+
+Start your chaincode again.
+```bash
+CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./simpleChaincode -peer.address 127.0.0.1:7052
+```
+
+## Helpful tmux operations
+```bash 
+# start a new tmux session
+tmux new -s mysession
+
+# split your screen
+## split pane horizontally
+CTRL + b \" (do it without the backslash)
+
+## split pane vertically
+CTRL + b %   
+
+# switch between panels
+CTRL + q 1 (the number of the panel)
+
+# leave the running tmux session
 CTRL + b d
-```
 
-## Show all running tmux session
-
-```bash
+# show all running tmux session
 tmux ls
-```
 
-## Attach a running tmux session
-
-```bash
-cd fabricDev
-tmux att fabricDev
+# attach a running tmux session
+tmux att -t fabricDev
 ```
 
 ## Stop the network
@@ -154,7 +225,6 @@ pkill -9 peer
 pkill -9 orderer
 
 # or use a bash script
-
 ```
 
 ## Start the network again
@@ -166,7 +236,6 @@ pkill -9 orderer
 # start the chaincode in terminal 2
 
 # do your CLI calls from terminal 3
-
 ```
 
 ## Clean up the system
