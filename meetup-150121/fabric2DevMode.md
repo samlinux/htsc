@@ -1,9 +1,25 @@
 # Fabric 2.2 Chaincode Devmode Environment - Binary Edition
 In this tutorial you will learn how you can enable the so called **peer devmode** for chaincode development. The devmode is running with binaries and **without** docker containers.
 
+# Contents
+- [Set up the Development Environment](#Set-up-the-development-environment)
+- [Start the Orderer](#Start-the-orderer)
+- [Start the peer in DevMode](#Start-the-peer-in-DevMode)
+- [Create the Channel](#Create-the-channel-ch1)
+- [Join the Channel](#Join-the-channel)
+- [Build the Chaincode](#Build-the-chaincode)
+- [Start the Chaincode](#Start-the-Chaincode)
+- [Approve and commit the Chaincode](#Approve-and-commit-the-Chaincode)
+- [Test your Chaincode](#Test-your-Chaincode)
+- [Modify your Chaincode](#Modify-your-Chaincode)
+- [Helpful tmux operations](#Helpful-tmux-operations)
+- [Stop the network](#Stop-the-network)
+- [Start the network again](#Start-the-network-again)
+- [Housekeepting](#Housekeepting)
+
 For the next steps we need four terminals. You can use four different ssh terminals or one tmux terminal with four panels as well. 
 
-## Set up the development environment
+# Set up the development environment
 
 ```bash
 mkdir fabricDev
@@ -52,7 +68,7 @@ export FABRIC_CFG_PATH=$(pwd)/fabric/sampleconfig
 configtxgen -profile SampleDevModeSolo -channelID syschannel -outputBlock genesisblock -configPath $FABRIC_CFG_PATH -outputBlock $(pwd)/artifacts/genesis.block
 ```
 
-## Start the orderer
+# Start the orderer
 ```bash
 # in terminal 0
 export PATH=$(pwd)/fabric/build/bin:$PATH
@@ -68,7 +84,7 @@ orderer
 ORDERER_GENERAL_GENESISFILE=$(pwd)/artifacts/genesis.block ORDERER_FILELEDGER_LOCATION=$(pwd)/data/orderer ORDERER_GENERAL_GENESISPROFILE=SampleDevModeSolo orderer
 ```
 
-## Start the peer in DevMode
+# Start the peer in DevMode
 ```bash
 # in terminal 1
 # Open another terminal window and set the required environment variables to override the peer configuration and start the peer node. Starting the peer with the --peer-chaincodedev=true flag puts the peer into DevMode.
@@ -90,7 +106,7 @@ peer node start --peer-chaincodedev=true
 CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:10443 CORE_PEER_FILESYSTEMPATH=$(pwd)/data/ FABRIC_LOGGING_SPEC=chaincode=debug CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052 peer node start --peer-chaincodedev=true
 
 ```
-## Create the channel ch1
+# Create the channel
 ```bash
 # in terminal 2
 export PATH=$(pwd)/fabric/build/bin:$PATH
@@ -104,12 +120,12 @@ peer channel create -o 127.0.0.1:7050 --outputBlock $(pwd)/artifacts/ch1.block -
 peer channel fetch newest $(pwd)/artifacts/ch1.block -c ch1 -o 127.0.0.1:7050
 ```
 
-## Join the channel
+# Join the channel
 ```bash 
 peer channel join -b $(pwd)/artifacts/ch1.block
 ```
 
-## Build the chaincode
+# Build the chaincode
 Now it is time to use your chaincode.
 
 ```bash 
@@ -122,7 +138,7 @@ G111MODULE=on go mod vendor
 go build -o simpleChaincode 
 ```
 
-## Start the Chaincode
+# Start the Chaincode
 ```bash 
 
 export DEVMODE_ENABLED=true
@@ -132,7 +148,7 @@ CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME
 
 ```
 
-## Approve and commit the Chaincode
+# Approve and commit the Chaincode
 
 ```bash 
 # in terminal 4
@@ -147,7 +163,7 @@ peer lifecycle chaincode checkcommitreadiness -o 127.0.0.1:7050 --channelID ch1 
 peer lifecycle chaincode commit -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --peerAddresses 127.0.0.1:7051
 ```
 
-## Test your Chaincode
+# Test your Chaincode
 
 ```bash
 # in terminal 4
@@ -162,7 +178,7 @@ CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 
 
 ```
 
-## Modify your Chaincode
+# Modify your Chaincode
 Stop the chaincode in terminal 2.
 ```bash 
 CTRL + c
@@ -188,7 +204,7 @@ Start your chaincode again.
 CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./simpleChaincode -peer.address 127.0.0.1:7052
 ```
 
-## Helpful tmux operations
+# Helpful tmux operations
 ```bash 
 # start a new tmux session
 tmux new -s mysession
@@ -213,7 +229,7 @@ tmux ls
 tmux att -t fabricDev
 ```
 
-## Stop the network
+# Stop the network
 ```bash
 # kill the chaincode
 pkill -9 simpleChaincode
@@ -227,7 +243,7 @@ pkill -9 orderer
 # or use a bash script
 ```
 
-## Start the network again
+# Start the network again
 ```bash 
 # start the orderer in terminal 0
 
@@ -238,7 +254,7 @@ pkill -9 orderer
 # do your CLI calls from terminal 3
 ```
 
-## Clean up the system
+# Housekeepting
 To clean up the system we have to delete the content of the data folder (leader data) and the content of the artifacts folder.
 
 ```bash
