@@ -1,7 +1,19 @@
 # Fabric 2.2 Chaincode Devmode Environment - Docker Edition
 In this tutorial we are going to compose a docker based network for chaincode development.
 
-## Preparation
+# Contents
+- [Preparation](#Preparation)
+- [Create artifacts](#Create-artifacts)
+- [Start the Network](#Start-the-network)
+- [Create and join Channel](#Create-and-join-Channel)
+- [Build and start the Chaincode](#Build-and-start-the-chaincode)
+- [Approve the Chaincode](#Approve-the-Chaincode)
+- [Test the Chaincode](#Test-the-Chaincode)
+- [Stop the Network](#Stop-the-Network)
+- [Continue your Chaincode work](#Continue-your-Chaincode-work)
+- [Hauskeeping](#Hauskeeping)
+
+# Preparation
 
 ```bash
 # I start in the fabric-samples folder
@@ -40,7 +52,7 @@ OrdererEndpoints:
 ```
 We are ready with the preparations.
 
-## Create artifacts
+# Create artifacts
 
 ```bash 
 # in terminal 1
@@ -54,13 +66,13 @@ configtxgen -profile SampleDevModeSolo -channelID syschannel -outputBlock genesi
 configtxgen -channelID ch1 -outputCreateChannelTx $(pwd)/artifacts/ch1.tx -profile SampleSingleMSPChannel -configPath $FABRIC_CFG_PATH
 ```
 
-## Start the network
+# Start the Network
 ```bash
 # in terminal 1
 docker-compose up
 ```
 
-## Create and join Channel ch1
+# Create and join Channel
 
 ```bash
 # in terminal 2
@@ -76,7 +88,7 @@ peer channel fetch newest $(pwd)/artifacts/ch1.block -c ch1 -o 127.0.0.1:7050
 peer channel join -b $(pwd)/artifacts/ch1.block
 ```
 
-## Build and start the chaincode
+# Build and start the Chaincode
 At this time we should have our chaincode onto the folder chaincode e.g. chaincode/saac
 
 **This step is also the step which you have to repeat every time if your chaincode is changing.**
@@ -95,7 +107,7 @@ CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME
 CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./atbcc -peer.address 127.0.0.1:7052
 ```
 
-## Approve the Chaincode
+# Approve the Chaincode
 This step has to be done only once.
 
 ```bash
@@ -109,8 +121,8 @@ peer lifecycle chaincode checkcommitreadiness -o 127.0.0.1:7050 --channelID ch1 
 peer lifecycle chaincode commit -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --peerAddresses 127.0.0.1:7051
 ```
 
-## Test your Chaincode
-### Version one sacc (simple asset chaincode)
+# Test the Chaincode
+## Version one sacc (simple asset chaincode)
 By the way this chaincode is based on old shim api implementation.
 
 ```bash
@@ -121,7 +133,7 @@ CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["set","k2","Snorre"]}'
 ```
 
-### Version two atbcc (asset-transfer-basic chaincode)
+## Version two atbcc (asset-transfer-basic chaincode)
 By the way this chaincode is based on the chaincode-api.
 
 ```bash
@@ -131,7 +143,7 @@ CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode query -o 127.0.0.1:7050 -C ch1 -
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["TransferAsset","asset1","Roland"]}'
 ```
 
-## Stop the Network
+# Stop the Network
 Notice you network is persistent. We can stop and start the network at any time we want.
 
 ```bash
@@ -139,7 +151,7 @@ Notice you network is persistent. We can stop and start the network at any time 
 docker-compose down
 ```
 
-## Continue your Chaincode work
+# Continue your Chaincode work
 ```bash
 # ----------------------------------------------
 # in terminal 1 - start the network
@@ -166,7 +178,7 @@ CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["set","k2","Snorre - now"]}'
 ```
 
-## Clean up the network
+# Hauskeeping
 
 ```bash
 rm -R ledgerData/* && rm -R artifacts/*
