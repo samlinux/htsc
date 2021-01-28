@@ -239,6 +239,9 @@ CTRL + b fn + up
 # leave scrolling mode
 ESC
 
+# remove a panel
+CTRL + b x
+
 ```
 
 # Stop the network
