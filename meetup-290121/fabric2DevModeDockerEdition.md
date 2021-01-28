@@ -32,7 +32,7 @@ cp ../test-network/docker/docker-compose-test-net.yaml docker-compose.yaml
 mkdir chaincode
 
 # persistent ledger data
-mkdir lederData
+mkdir ledgerData
 
 # artifacts
 mkdir artifacts
@@ -82,7 +82,7 @@ export FABRIC_CFG_PATH=$(pwd)/sampleconfig
 peer channel create -o 127.0.0.1:7050 --outputBlock $(pwd)/artifacts/ch1.block -c ch1 -f $(pwd)/artifacts/ch1.tx
 
 # we can fetch the newest block as well
-peer channel fetch newest $(pwd)/artifacts/ch1.block -c ch1 -o 127.0.0.1:7050
+# peer channel fetch newest $(pwd)/artifacts/ch1.block -c ch1 -o 127.0.0.1:7050
 
 # join the peer to the channel ch1
 peer channel join -b $(pwd)/artifacts/ch1.block
@@ -104,7 +104,7 @@ go build -o saac ./
 # Start the chaincode
 # in terminal 2
 CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./sacc -peer.address 127.0.0.1:7052
-CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./atbcc -peer.address 127.0.0.1:7052
+#CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./atbcc -peer.address 127.0.0.1:7052
 ```
 
 # Approve the Chaincode
@@ -129,7 +129,7 @@ By the way this chaincode is based on old shim api implementation.
 # in terminal 2
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["k1","roland"]}' --isInit
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["","k1"]}'
-CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["set","k1","Roland"]}'
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["set","k1","Roland2"]}'
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["set","k2","Snorre"]}'
 ```
 

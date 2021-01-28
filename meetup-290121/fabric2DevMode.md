@@ -52,7 +52,7 @@ root@fabric-04:~/fabricDev# tree -L 1 .
 ## we switch into the fabric-folder
 cd fabric
 
-## build (make sure you have installed gcc and make)
+## build (make sure you have installed gcc and make), Building build/bin/
 make orderer peer configtxgen
 
 ## if you are ready then go back
@@ -117,7 +117,7 @@ configtxgen -channelID ch1 -outputCreateChannelTx $(pwd)/artifacts/ch1.tx -profi
 peer channel create -o 127.0.0.1:7050 --outputBlock $(pwd)/artifacts/ch1.block -c ch1 -f $(pwd)/artifacts/ch1.tx
 
 # we can fetch the newest block as well
-peer channel fetch newest $(pwd)/artifacts/ch1.block -c ch1 -o 127.0.0.1:7050
+# peer channel fetch newest $(pwd)/artifacts/ch1.block -c ch1 -o 127.0.0.1:7050
 ```
 
 # Join the channel
@@ -171,7 +171,7 @@ peer lifecycle chaincode commit -o 127.0.0.1:7050 --channelID ch1 --name mycc --
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["msg","Hello"]}'  --isInit
 
 # querys the key
-CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["","msg"]}'
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["","msg"]}'
 
 # set new value
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["set","msg2","Hello2"]}'  
@@ -202,6 +202,11 @@ go build -o simpleChaincode
 Start your chaincode again.
 ```bash
 CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./simpleChaincode -peer.address 127.0.0.1:7052
+
+DEVMODE_ENABLED=test CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./simpleChaincode -peer.address 127.0.0.1:7052
+
+DEVMODE_ENABLED= CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./simpleChaincode -peer.address 127.0.0.1:7052
+
 ```
 
 # Helpful tmux operations
@@ -227,6 +232,13 @@ tmux ls
 
 # attach a running tmux session
 tmux att -t fabricDev
+
+# enable scrolling mode
+CTRL + b fn + up
+
+# leave scrolling mode
+ESC
+
 ```
 
 # Stop the network
