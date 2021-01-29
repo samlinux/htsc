@@ -103,7 +103,7 @@ go build -o saac ./
 
 # Start the chaincode
 # in terminal 2
-CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./sacc -peer.address 127.0.0.1:7052
+CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./saac -peer.address 127.0.0.1:7052
 #CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=mycc:1.0 ./atbcc -peer.address 127.0.0.1:7052
 ```
 
