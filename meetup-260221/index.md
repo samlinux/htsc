@@ -24,6 +24,9 @@ We have two APIs to communicate with he ledger.
   - provides the chaincode interface. A lower level API for implementing Smart Contracts.  It also provides the implementation to support communication with Hyperledger Fabric peers for Smart Contracts written using the fabric-contract-api together with the fabric-chaincode-node cli to launch Chaincode or Smart Contracts.
 
 ## Some notes to usage
+See the files:
+- [index.js](./index.js)
+- [lib/cs01.js](./lib/cs01.js)
 
 ```bash
 cd fabric/fabric-samples/dev-network/chaincode/nodejs
