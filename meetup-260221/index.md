@@ -27,6 +27,7 @@ We have two APIs to communicate with he ledger.
 See the files:
 - [index.js](./index.js)
 - [lib/cs01.js](./lib/cs01.js)
+- [cs01.sh](./cs01.sh)
 
 ```bash
 cd fabric/fabric-samples/dev-network/chaincode/nodejs
