@@ -1,82 +1,18 @@
 # Comparison between Go and Node.js Chaincode
+This is an ongoing work to compare chaincode written in Node.js and Golang.
 
-## Chaincode DevMode - Node.js
-
-### Housekeepting
+## Housekeepting
 To clean up the system we have to delete the content of the data folder (leader data) and the content of the artifacts folder.
 
 ```bash
 rm -R $(pwd)/ledgerData/*
 rm $(pwd)/artifacts/*
+
+docker rm $(docker ps -a -f status=exited -q)
+docker volumne prune
 ```
 
-### Terminal 1 - Start the network
-
-```bash 
-export FABRIC_CFG_PATH=$(pwd)/sampleconfig
-
-# generate the genesis block for the ordering service
-configtxgen -profile SampleDevModeSolo -channelID syschannel -outputBlock genesisblock -configPath $FABRIC_CFG_PATH -outputBlock $(pwd)/artifacts/genesis.block
-
-#create channel creattion transaction
-configtxgen -channelID ch1 -outputCreateChannelTx $(pwd)/artifacts/ch1.tx -profile SampleSingleMSPChannel -configPath $FABRIC_CFG_PATH
-
-# start the network
-docker-compose up
-```
-
-### Terminal 2 - create and join the channel
-
-```bash 
-export FABRIC_CFG_PATH=$(pwd)/sampleconfig
-# create a new channel
-peer channel create -o 127.0.0.1:7050 --outputBlock $(pwd)/artifacts/ch1.block -c ch1 -f $(pwd)/artifacts/ch1.tx
-
-# dev peer joins the channel
-peer channel join -b $(pwd)/artifacts/ch1.block
-
-# package the node.js chaincode
-peer lifecycle chaincode package cs01.tar.gz --path chaincode/nodejs/cs01 --lang node --label mycc
-
-# install the node.js chaincode
-peer lifecycle chaincode install cs01.tar.gz --peerAddresses localhost:7051
-
-# check if chaincode is installed
-peer lifecycle chaincode queryinstalled --peerAddresses localhost:7051
-
-# remember the package Id
-export PK_ID=mycc:a85765abbb37fba3c3085f29a4879c190351d40f673c91daaefc9a3f88ffe4d7
-
-#### Start the node.js Chaincode ####
-CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_ADDRESS=127.0.0.1:7052 CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=$PK_ID ./node_modules/.bin/fabric-chaincode-node start --peer.address 127.0.0.1:7052
-
-```
-
-### Terminal 3 - Approve and using the chaincode
-
-```bash 
-# remember the package Id
-export PK_ID=mycc:a85765abbb37fba3c3085f29a4879c190351d40f673c91daaefc9a3f88ffe4d7
-
-# approve the chaincode 
-peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id $PK_ID
-
-peer lifecycle chaincode checkcommitreadiness -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')"
-
-peer lifecycle chaincode commit -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --peerAddresses 127.0.0.1:7051
-```
-
-### Using the chaincode
-```bash 
-# init the chaoncode
-peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["InitLedger"]}' --isInit
-
-# query the chaincode
-peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["GetAllAssets"]}'
-
-
-```
-
+## Chaincode DevMode - Node.js
 
 ## Overview different APIs
 
@@ -87,7 +23,7 @@ We have two APIs to communicate with he ledger.
 - fabric-shim **(chaincode interface)**
   - provides the chaincode interface. A lower level API for implementing Smart Contracts.  It also provides the implementation to support communication with Hyperledger Fabric peers for Smart Contracts written using the fabric-contract-api together with the fabric-chaincode-node cli to launch Chaincode or Smart Contracts.
 
-### How to use it
+## Some notes to usage
 
 ```bash
 cd fabric/fabric-samples/dev-network/chaincode/nodejs
@@ -100,60 +36,103 @@ npm install --save fabric-contract-api fabric-shim
 
 touch index.html
 mkdir lib
-touch lib/note.js
+touch lib/cs01.js
 
+# modify the package.json file > scripts.start section
+"scripts": {
+  "start": "fabric-chaincode-node start",
+}
 
 ```
-If the chaincode is ready
+
+## Terminal 1 - Start the network
+Terminal one is responsoble for running the network without the chaincode container.
 
 ```bash 
+export FABRIC_CFG_PATH=$(pwd)/sampleconfig
+
+# generate the genesis block for the ordering service
+configtxgen -profile SampleDevModeSolo -channelID syschannel -outputBlock genesisblock -configPath $FABRIC_CFG_PATH -outputBlock $(pwd)/artifacts/genesis.block
+
+# create channel creation transaction
+configtxgen -channelID ch1 -outputCreateChannelTx $(pwd)/artifacts/ch1.tx -profile SampleSingleMSPChannel -configPath $FABRIC_CFG_PATH
+
+# start the network
+docker-compose up
+```
+
+## Terminal 2 - is the Chaincode terminal 
+
+## Create and join the channel
+
+```bash 
+export FABRIC_CFG_PATH=$(pwd)/sampleconfig
+# create a new channel
+peer channel create -o 127.0.0.1:7050 --outputBlock $(pwd)/artifacts/ch1.block -c ch1 -f $(pwd)/artifacts/ch1.tx
+
+# dev peer joins the channel
+peer channel join -b $(pwd)/artifacts/ch1.block
+
+```
+
+## Install the chaincode
+```bash
 # package the node.js chaincode
-cd $HOME/fabric/fabric-samples/dev-network
-peer lifecycle chaincode package noteContract.tar.gz --path chaincode/nodejs/note1 --lang node --label noteCC
+peer lifecycle chaincode package cs01.tar.gz --path chaincode/nodejs/cs01 --lang node --label mycc
 
 # install the node.js chaincode
-peer lifecycle chaincode install noteContract.tar.gz --peerAddresses localhost:7051
+peer lifecycle chaincode install cs01.tar.gz --peerAddresses localhost:7051
 
 # check if chaincode is installed
 peer lifecycle chaincode queryinstalled --peerAddresses localhost:7051
 
 # remember the package Id
-export PK_ID=noteCC:42c541a449216c91dbfaf84f0e358790d0603df1841d73c01cef1b59257f139e
+export PK_ID=mycc:162665b3ae15f0ba7a62e353f8da68fdea4e6bf1b6bf4760e0a15e76eb8d56e3
+```
 
+## Start/Stop the chaincode
+cd chaincode/nodejs/cs01
+```bash 
 #### Start the node.js Chaincode ####
-cd chaincode/nodejs/note1
 CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_ADDRESS=127.0.0.1:7052 CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=$PK_ID ./node_modules/.bin/fabric-chaincode-node start --peer.address 127.0.0.1:7052
 
-
 ```
 
-In terminal 3
+## Terminal 3 - Approve and using the chaincode
 
-```bash
+```bash 
+cd fabric/fabric-samples/dev-network/
+export FABRIC_CFG_PATH=$(pwd)/sampleconfig
+
 # remember the package Id
-export PK_ID=noteCC:42c541a449216c91dbfaf84f0e358790d0603df1841d73c01cef1b59257f139e
+export PK_ID=mycc:162665b3ae15f0ba7a62e353f8da68fdea4e6bf1b6bf4760e0a15e76eb8d56e3
 
 # approve the chaincode 
-peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name noteCC --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id $PK_ID
+peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id $PK_ID
 
-peer lifecycle chaincode checkcommitreadiness -o 127.0.0.1:7050 --channelID ch1 --name noteCC --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')"
+peer lifecycle chaincode checkcommitreadiness -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')"
 
-peer lifecycle chaincode commit -o 127.0.0.1:7050 --channelID ch1 --name noteCC --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --peerAddresses 127.0.0.1:7051
+peer lifecycle chaincode commit -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --peerAddresses 127.0.0.1:7051
 ```
 
-### Testing the chaincode
+## Testing the chaincode
 ```bash 
 # init the chaincode for the first time
 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["storeCs","100","2021-02-21T17:15:57.928Z","reco"]}' --isInit
 
 # query the chaincode
-peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getTx","465781a17776220da34d9d0657a0e392b9c1a089a374bca64a787fad7f770e3b"]}' | jq .
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCs","2021~1~c475e5e57cd2a2dd2a4a66eb1e94c5f1dd1aad7fe5f25d458051411b058f6795"]}' | jq .
 
 # init the chaincode
-peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["storeCs","540.34","2021-02-21T17:15:57.928Z","reve"]}' 
+peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["storeCs","540.34","2021-04-22T17:15:57.928Z","reve"]}' 
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCs","2021~3~1ac634c81f3b17dce80585b3cba9ae088493f2bae999e54fbc9f9bcd54173ca6"]}' | jq .
+
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByYearMonth","2021~2"]}' | jq .
 
 ```
-### Install the Chaincode onto the test-network
+
+## Use the test-network
+## Install the Chaincode onto the test-network
 ```bash
 cd $HOME/fabric/fabric-samples/test-network 
 
@@ -168,9 +147,15 @@ docker-compose -f docker/docker-compose-test-net.yaml logs -f
 . ./scripts/envVar.sh
 setGlobals 1
 
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com  --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C channel1 -n cs01CC --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"Args":["storeCs","100","2021-02-21T17:15:57.928Z","reco"]}'
+# use the script
+./cs01.sh
 
+# invoke it by hand
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com  --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C channel1 -n cs01CC --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"Args":["storeCs","6555","2021-06-21T17:15:57.928Z","reco"]}'
 
-peer chaincode query -o 127.0.0.1:7050 -C channel1 -n noteCC -c '{"Args":["getNote","n1"]}' | jq .
+# do the queries
+peer chaincode query -o 127.0.0.1:7050 -C channel1 -n cs01CC -c '{"Args":["getCs","2021~1~fda3f767386ddb137ef6b09eb722339864c05b87a0f64a10a8ccceec9c28db50"]}' | jq .
+peer chaincode query -o 127.0.0.1:7050 -C channel1 -n cs01CC -c '{"Args":["getCsByYearMonth","2021~2"]}' | jq .
+peer chaincode query -o 127.0.0.1:7050 -C channel1 -n cs01CC -c '{"Args":["getCsByYearMonth","2020"]}' | jq .
 
 ```
