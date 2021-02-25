@@ -111,12 +111,12 @@ class Cs01Contract extends Contract {
       keyValues.forEach(element => keys.push(element))
       
       // do the query
-      let coloredMarbleResultsIterator = await ctx.stub.getStateByPartialCompositeKey('year~month~txid', keys);
+      let resultsIterator = await ctx.stub.getStateByPartialCompositeKey('year~month~txid', keys);
       
       // prepare the result
       const allResults = [];
       while (true) {
-        const res = await coloredMarbleResultsIterator.next();
+        const res = await resultsIterator.next();
 
         if (res.value) {
           // if not a getHistoryForKey iterator then key is contained in res.value.key
@@ -128,7 +128,7 @@ class Cs01Contract extends Contract {
         // check to see if we have reached then end
         if (res.done) {
           // explicitly close the iterator            
-          await coloredMarbleResultsIterator.close();
+          await resultsIterator.close();
           return allResults;
         }
       }
