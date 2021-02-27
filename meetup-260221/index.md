@@ -31,7 +31,7 @@ See the files:
 
 ```bash
 cd fabric/fabric-samples/dev-network/chaincode/nodejs
-mkdir test1 && cd test1
+mkdir cs01 && cd cs01
 
 npm init
 npm install --save fabric-contract-api fabric-shim
@@ -50,7 +50,7 @@ touch lib/cs01.js
 ```
 
 ## Terminal 1 - Start the network
-Terminal one is responsoble for running the network without the chaincode container.
+Terminal one is responsible for running the network without the chaincode container.
 
 ```bash 
 export FABRIC_CFG_PATH=$(pwd)/sampleconfig
@@ -91,7 +91,7 @@ peer lifecycle chaincode install cs01.tar.gz --peerAddresses localhost:7051
 peer lifecycle chaincode queryinstalled --peerAddresses localhost:7051
 
 # remember the package Id
-export PK_ID=mycc:162665b3ae15f0ba7a62e353f8da68fdea4e6bf1b6bf4760e0a15e76eb8d56e3
+export PK_ID=mycc:ecbc4ec15302eace477c8f2fe3645b4b7315427fcf89f7dd710d455aa130f268
 ```
 
 ## Start/Stop the chaincode
@@ -109,7 +109,7 @@ cd fabric/fabric-samples/dev-network/
 export FABRIC_CFG_PATH=$(pwd)/sampleconfig
 
 # remember the package Id
-export PK_ID=mycc:162665b3ae15f0ba7a62e353f8da68fdea4e6bf1b6bf4760e0a15e76eb8d56e3
+export PK_ID=mycc:ecbc4ec15302eace477c8f2fe3645b4b7315427fcf89f7dd710d455aa130f268
 
 # approve the chaincode 
 peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id $PK_ID
@@ -121,33 +121,35 @@ peer lifecycle chaincode commit -o 127.0.0.1:7050 --channelID ch1 --name mycc --
 
 ## Testing the chaincode
 ```bash 
-# init the chaincode for the first time
+# call the --isInit option only for the first time
 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["storeCs","100","2021-02-21T17:15:57.928Z","reco"]}' --isInit
 
 # query the chaincode
-peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCs","2021~1~c475e5e57cd2a2dd2a4a66eb1e94c5f1dd1aad7fe5f25d458051411b058f6795"]}' | jq .
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByYearMonth","2021~1~c475e5e57cd2a2dd2a4a66eb1e94c5f1dd1aad7fe5f25d458051411b058f6795"]}' | jq .
 
-# init the chaincode
+# use the chaincode
 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["storeCs","540.34","2021-04-22T17:15:57.928Z","reve"]}' 
-peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCs","2021~3~1ac634c81f3b17dce80585b3cba9ae088493f2bae999e54fbc9f9bcd54173ca6"]}' | jq .
+
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByYearMonth","2021~3~1ac634c81f3b17dce80585b3cba9ae088493f2bae999e54fbc9f9bcd54173ca6"]}' | jq .
 
 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByYearMonth","2021~2"]}' | jq .
 
 ```
 
 ## Use the test-network
-## Install the Chaincode onto the test-network
+## Install the Chaincode into the test-network
 ```bash
 cd $HOME/fabric/fabric-samples/test-network 
 
 export FABRIC_CFG_PATH=../config
 
-# Start network and install the chaincode
+# Start network and install the chaincode in one single line
 ./network.sh createChannel -c channel1 && ./network.sh deployCC -c channel1 -ccn cs01CC -ccl javascript -ccv 1 -ccs 1 -ccp ../dev-network/chaincode/nodejs/cs01
 
+# check your logs
 docker-compose -f docker/docker-compose-test-net.yaml logs -f
 
-# in terminal 2
+# in terminal 2 - make clear who you are
 . ./scripts/envVar.sh
 setGlobals 1
 
@@ -158,7 +160,7 @@ setGlobals 1
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com  --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C channel1 -n cs01CC --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"Args":["storeCs","6555","2021-06-21T17:15:57.928Z","reco"]}'
 
 # do the queries
-peer chaincode query -o 127.0.0.1:7050 -C channel1 -n cs01CC -c '{"Args":["getCs","2021~1~fda3f767386ddb137ef6b09eb722339864c05b87a0f64a10a8ccceec9c28db50"]}' | jq .
+peer chaincode query -o 127.0.0.1:7050 -C channel1 -n cs01CC -c '{"Args":["getCsByYearMonth","2021~1~fda3f767386ddb137ef6b09eb722339864c05b87a0f64a10a8ccceec9c28db50"]}' | jq .
 peer chaincode query -o 127.0.0.1:7050 -C channel1 -n cs01CC -c '{"Args":["getCsByYearMonth","2021~2"]}' | jq .
 peer chaincode query -o 127.0.0.1:7050 -C channel1 -n cs01CC -c '{"Args":["getCsByYearMonth","2020"]}' | jq .
 
