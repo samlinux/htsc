@@ -18,8 +18,6 @@ docker volume prune
 
 ## Chaincode DevMode - Node.js
 
-## Overview different APIs
-
 ## Some notes to usage
 See the files:
 - [index.js](./index.js)
