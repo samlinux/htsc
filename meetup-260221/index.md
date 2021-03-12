@@ -9,7 +9,7 @@ rm -R $(pwd)/ledgerData/*
 rm $(pwd)/artifacts/*
 
 docker rm $(docker ps -a -f status=exited -q)
-docker volumne prune
+docker volume prune
 ```
 
 ## Chaincode DevMode - Node.js
