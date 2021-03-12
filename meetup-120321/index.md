@@ -71,7 +71,7 @@ export PK_ID=mycc:8081236aa489ea33cd5e588ba1ba54644ecd1cdbde2695c9283e2470875e4b
 ```
 
 ## Start/Stop the chaincode
-cd chaincode/nodejs/cs01
+cd chaincode/nodejs/cs01-2
 ```bash 
 #### Start the node.js Chaincode ####
 CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_ADDRESS=127.0.0.1:7052 CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=$PK_ID ./node_modules/.bin/fabric-chaincode-node start --peer.address 127.0.0.1:7052
@@ -116,7 +116,7 @@ peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByYearM
 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByYearMonth","2021~3~1ac634c81f3b17dce80585b3cba9ae088493f2bae999e54fbc9f9bcd54173ca6"]}' | jq .
 
 ## query by time range (date to date)
-peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByTimeRange","2021-04-01T01:15:57.928Z", "2021-04-30T17:15:57.928Z"]}' | jq .
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByTimeRange","2021-03-01T01:15:57.928Z", "2021-03-31T17:15:57.928Z"]}' | jq .
 
 ```
 
