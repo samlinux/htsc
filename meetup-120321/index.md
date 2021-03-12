@@ -22,7 +22,7 @@ docker volume prune
 See the files:
 - [index.js](./index.js)
 - [lib/cs01.js](./lib/cs01.js)
-- [META-INF/statedb/cuchdb/indexRevenue.json]
+- [META-INF/statedb/cuchdb/indexRevenue.json](META-INF/statedb/cuchdb/indexRevenue.json)
 
 
 ## Terminal 1 - Start the network
