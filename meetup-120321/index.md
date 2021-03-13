@@ -1,4 +1,7 @@
 # How to use CouchDb for your Chaincode
+
+You can find the slides and the recording from this session on my [blog](https://samlinux.at/en/blog/fabric2-10/).
+
 This example is based on the session example from 26.02.2021 and extends this example with a couchDb query.
 
 - modify the chaincode
@@ -67,7 +70,7 @@ peer lifecycle chaincode install cs01-2.tar.gz --peerAddresses localhost:7051
 peer lifecycle chaincode queryinstalled --peerAddresses localhost:7051
 
 # remember the package Id
-export PK_ID=mycc:8081236aa489ea33cd5e588ba1ba54644ecd1cdbde2695c9283e2470875e4ba3
+export PK_ID=mycc:80636242f7e0e9763d903c7bb078afbfc0d44061dd9288a0532be70d3a4e9133
 ```
 
 ## Start/Stop the chaincode
@@ -85,7 +88,7 @@ cd fabric/fabric-samples/dev-network/
 export FABRIC_CFG_PATH=$(pwd)/sampleconfig
 
 # remember the package Id
-export PK_ID=mycc:8081236aa489ea33cd5e588ba1ba54644ecd1cdbde2695c9283e2470875e4ba3
+export PK_ID=mycc:80636242f7e0e9763d903c7bb078afbfc0d44061dd9288a0532be70d3a4e9133
 
 # approve the chaincode 
 peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id $PK_ID
@@ -116,7 +119,7 @@ peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByYearM
 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByYearMonth","2021~3~1ac634c81f3b17dce80585b3cba9ae088493f2bae999e54fbc9f9bcd54173ca6"]}' | jq .
 
 ## query by time range (date to date)
-peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByTimeRange","2021-03-01T01:15:57.928Z", "2021-03-31T17:15:57.928Z"]}' | jq .
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["getCsByTimeRange","2021-02-01T01:15:57.928Z", "2021-02-28T17:15:57.928Z"]}' | jq .
 
 ```
 
