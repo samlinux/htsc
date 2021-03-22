@@ -19,6 +19,14 @@ In this tutorial you will learn how you can enable the so called **peer devmode*
 
 For the next steps we need four terminals. You can use four different ssh terminals or one tmux terminal with four panels as well. 
 
+# Housekeepting
+To clean up the system we have to delete the content of the data folder (leader data) and the content of the artifacts folder.
+
+```bash
+rm -R $(pwd)/data/*
+rm $(pwd)/artifacts/*
+```
+
 # Set up the development environment
 
 ```bash
@@ -268,12 +276,3 @@ pkill -9 orderer
 
 # do your CLI calls from terminal 3
 ```
-
-# Housekeepting
-To clean up the system we have to delete the content of the data folder (leader data) and the content of the artifacts folder.
-
-```bash
-rm -R $(pwd)/data/*
-rm $(pwd)/artifacts/*
-```
-
