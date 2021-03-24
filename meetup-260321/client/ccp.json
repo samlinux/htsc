@@ -1,0 +1,42 @@
+{
+  "name": "dev-network",
+  "version": "1.0.0",
+  "client": {
+    "organization": "SampleOrg",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        }
+      }
+    }
+  },
+  "channels": {
+    "ch1": {
+      "orderers": ["localhost"],
+      "peers": {
+        "localhost": {
+          "endorsingPeer": true,
+          "chaincodeQuery": true,
+          "eventSource": true
+        }
+      }
+    }
+  },
+  "organizations": {
+    "SampleOrg": {
+      "mspid": "SampleOrg",
+      "peers": ["localhost"]
+    }
+  },
+  "orderers": {
+    "localhost": {
+    "url": "grpc://127.0.0.1:7050"
+    }
+},
+  "peers": {
+    "localhost": {
+    "url": "grpc://127.0.0.1:7051" 
+    }
+  }
+}

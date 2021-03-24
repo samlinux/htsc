@@ -12,3 +12,4 @@ Hyperledger Fabric learning materials.
 | [12.02.2021](./meetup-120221/index.md)| This meetup is about how you can use Node.js as an application developer.     |
 | [26.02.2021](./meetup-260221/index.md)| Part 1 - Node.js development; Comparison between Node.js and Golang chaincode.     |
 | [12.03.2021](./meetup-120321/index.md)| Part 2 - Node.js development; Extends part 1 with a couchDb query.     |
+| [26.03.2021](./meetup-260321/index.md)| Part 3 - Node.js development; Access development environment with Node.js SDK.     |

@@ -52,7 +52,7 @@ peer channel join -b $(pwd)/artifacts/ch1.block
 ```
 
 ### Install the chaincode
-We use node.js chaincode for this example.
+We use the predefined asset-transfer-basic node.js Chaincode in this example.
 
 ```bash
 # set some environment vars
@@ -110,14 +110,75 @@ peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["CreateAsset
 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["ReadAsset","A1"]}' | jq .
 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["UpdateAsset","A1", "red", "10", "rbole", "1200.23"]}'
 
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["GetAllAssets"}' | jq .
+
 ```
 
 ### Watch your system
 
 ```bash
 # try htop and filter to node peer OR orderer
+htop
+
+# try jobs -r
+jobs -r
+
 ```
 
 ## Use the Node.js SDK to get access
-In this section we are going to compose a CLI application the interact with the network.
+In this section we are going to compose a CLI application the interact with the network. The following steps are to be done:
 
+- Create the connection profile as json file. See ccp.json
+- Convert an existing identity and put it into the local wallet. See addtowallet.js
+- Create an CLI program to interact with the network. See index.js
+
+To create an identity we need the MSP folder from the fabric sampleconfig folder. You can find this sampleconfig files under the cloned fabric folder. We need this sampleconfig folder also for creating the genesis block and the channel transaction. 
+
+Command to inspect the .pem file.
+```bash
+openssl x509 -in ../fabric/sampleconfig/msp/admincerts/admincert.pem -text
+```
+
+```bash
+# we create a client folder 
+mkdir client && cd client
+
+# place to store the identitities
+mkdir wallet
+
+# init a npm project
+npm init 
+
+# install the fabric dependicies
+npm install fabric-network --save
+
+# create addtowallet.js file
+
+# usage of addtowallet.js
+node addtowallet.js
+
+# create index.js
+
+# usage index.js
+node index.js GetAllAssets
+```
+
+### Logging
+
+There are four levels of logging available within the SDK:
+
+- info
+- warn
+- error
+- debug
+
+```bash
+# set logging level to the console
+export HFC_LOGGING='{"info":"console"}'
+
+# set logging to a file
+export HFC_LOGGING='{"error":"./error.log"}'
+
+# unset logging level
+export HFC_LOGGING=''
+```
