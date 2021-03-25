@@ -16,6 +16,13 @@ Follow the following steps from the preparation guide:
 - Set up the development environment then follow the instructions below
 - Hauskeeping
 
+# Housekeepting
+To clean up the system we have to delete the content of the data folder (leader data) and the content of the artifacts folder.
+
+```bash
+rm -R $(pwd)/data/*
+rm $(pwd)/artifacts/*
+```
 
 ### Start the network (start orderer and peer)
 ```bash
@@ -69,7 +76,7 @@ peer lifecycle chaincode install atb.tar.gz --peerAddresses localhost:7051
 peer lifecycle chaincode queryinstalled --peerAddresses localhost:7051
 
 # remember the package Id
-export PK_ID=mycc:8529fe2f669c176da65364d0d694ddc7f328d846718d8c54a0121c500652e446
+export PK_ID=mycc:34a7b95b1feb6443cde4f451ca91ad21f5d50c1d0e3dd490b59325667c638e0c
 ```
 ### Start/Stop the chaincode
 
@@ -89,7 +96,7 @@ export FABRIC_CFG_PATH=$(pwd)/fabric/sampleconfig
 export PATH=$(pwd)/fabric/build/bin:$PATH
 
 # remember the package Id
-export PK_ID=mycc:8529fe2f669c176da65364d0d694ddc7f328d846718d8c54a0121c500652e446
+export PK_ID=mycc:34a7b95b1feb6443cde4f451ca91ad21f5d50c1d0e3dd490b59325667c638e0c
 
 # approve the chaincode 
 peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id $PK_ID
@@ -105,7 +112,7 @@ Test the chaincode with your CLI commands.
 # call the --isInit option only for the first time
 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["InitLedger"]}' --isInit
 
-peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["ReadAsset","asset1"]}'
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["ReadAsset","asset1"]}' | jq .
 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["CreateAsset","A1", "red", "10", "rbole", "100"]}'
 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["ReadAsset","A1"]}' | jq .
 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["UpdateAsset","A1", "red", "10", "rbole", "1200.23"]}'
@@ -163,6 +170,29 @@ node addtowallet.js
 node index.js GetAllAssets
 ```
 
+### Steps to do part two
+
+```bash
+mkdir client
+npm init
+
+# copy or create ccp.json 
+npm install --save fabric-network
+mkdir wallet
+
+# copy or create addtowallet.js
+node addtowallet.js 
+cat wallet/admin.id | jq .
+
+# copy or create helper.js
+
+# copy or create index.js
+node index.js GetAllAssets | jq .
+node index.js ReadAsset asset6 | jq .
+node index.js CreateAsset 
+node index.js ReadAsset A5 | jq .
+```
+
 ### Logging
 
 There are four levels of logging available within the SDK:
@@ -174,7 +204,7 @@ There are four levels of logging available within the SDK:
 
 ```bash
 # set logging level to the console
-export HFC_LOGGING='{"info":"console"}'
+export HFC_LOGGING='{"debug":"console"}'
 
 # set logging to a file
 export HFC_LOGGING='{"error":"./error.log"}'
