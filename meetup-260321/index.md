@@ -1,6 +1,6 @@
 # Meetup Support Material
 
-This lesson continues the priviouse session from 29.01.2021. Watch this session [Fabric 2.2 Chaincode Devmode Environment - Binary Edition](fabric2DevMode.md) to be prepared.
+This lesson continues the priviouse session from 29.01.2021. Watch this session [Fabric 2.2 Chaincode Devmode Environment - Binary Edition](../meetup-290121/fabric2DevMode.md) to be prepared.
 
 In this session I want to answer the following question: "How can we use the Node.js SDK to interact with the development environment and test chaincode?"
 
@@ -10,7 +10,7 @@ This is session can be divided into two parts.
 2. Usage of the Node.js SDK to get access to the development environment
 
 ## Preparation
-See the section "Set up the development environment" in the preparation session [Fabric 2.2 Chaincode Devmode Environment - Binary Edition](fabric2DevMode.md) to setup you system. 
+See the section "Set up the development environment" in the preparation session [Fabric 2.2 Chaincode Devmode Environment - Binary Edition](../meetup-290121/fabric2DevMode.md.md) to setup you system. 
 
 Follow the following steps from the preparation guide:
 - Set up the development environment then follow the instructions below
@@ -76,7 +76,7 @@ peer lifecycle chaincode install atb.tar.gz --peerAddresses localhost:7051
 peer lifecycle chaincode queryinstalled --peerAddresses localhost:7051
 
 # remember the package Id
-export PK_ID=mycc:34a7b95b1feb6443cde4f451ca91ad21f5d50c1d0e3dd490b59325667c638e0c
+export PK_ID=mycc:f37c774772cb0154349812e1acd303992ad9cbf4eabbc29079797e4e052fac1d
 ```
 ### Start/Stop the chaincode
 
@@ -96,7 +96,7 @@ export FABRIC_CFG_PATH=$(pwd)/fabric/sampleconfig
 export PATH=$(pwd)/fabric/build/bin:$PATH
 
 # remember the package Id
-export PK_ID=mycc:34a7b95b1feb6443cde4f451ca91ad21f5d50c1d0e3dd490b59325667c638e0c
+export PK_ID=mycc:f37c774772cb0154349812e1acd303992ad9cbf4eabbc29079797e4e052fac1d
 
 # approve the chaincode 
 peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name mycc --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id $PK_ID
@@ -112,12 +112,12 @@ Test the chaincode with your CLI commands.
 # call the --isInit option only for the first time
 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["InitLedger"]}' --isInit
 
-peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["ReadAsset","asset1"]}' | jq .
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["ReadAsset","A5"]}' | jq .
 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["CreateAsset","A1", "red", "10", "rbole", "100"]}'
 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["ReadAsset","A1"]}' | jq .
 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["UpdateAsset","A1", "red", "10", "rbole", "1200.23"]}'
 
-peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["GetAllAssets"}' | jq .
+peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["GetAllAssets"]}' | jq .
 
 ```
 
