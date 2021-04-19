@@ -1,4 +1,4 @@
-# Hyperledger Tech Study Circle (HTSC)
+# Samlinux Academy 
 Hyperledger Fabric learning materials.
 
 | Meetup        | Topic          |
