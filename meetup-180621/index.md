@@ -2,7 +2,7 @@
 
 **DRAFT Version**
 
-Start the test network.
+Start the development test network.
 ```bash
 ./devNetwork.sh up -ca
 ```
