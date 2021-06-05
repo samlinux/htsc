@@ -1,8 +1,11 @@
 # Attribute-based access controll (ABAC)
 
-**DRAFT Version**
+In this lab we are going to implement the following scenario. One organization with two different roles: 
+- one for creating and updating assets and
+- one only for reading those assets.
 
-Start the development test network.
+
+First let's start the development test network.
 ```bash
 ./devNetwork.sh up -ca
 ```
