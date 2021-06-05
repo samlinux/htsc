@@ -22,18 +22,18 @@ export FABRIC_CA_CLIENT_HOME=${PWD}/organizations/peerOrganizations/org1.example
 echo $FABRIC_CA_CLIENT_HOME
 ```
 
-Enrollment Certificates (ECerts)
-
-The ”:ecert” suffix means that by default the attribute and its value will be inserted into the identity’s enrollment certificate, which can then be used to make access control decisions.
-
 Let's register and enroll two users: writer and reader under the prefix samlinux.
 
 ```bash
 # register first
+## client samlinux.writer
 fabric-ca-client register --id.name writer --id.secret writerpw --id.type client --id.attrs 'samlinux.writer=true:ecert' --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 
+## client samlinux.reader
 fabric-ca-client register --id.name reader --id.secret readerpw --id.type client --id.attrs 'samlinux.reader=true:ecert' --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
+```
 
+```bash
 # enroll second
 fabric-ca-client enroll -u https://writer:writerpw@localhost:7054 --caname ca-org1 -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/writer@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 
@@ -61,6 +61,24 @@ organizations/peerOrganizations/org1.example.com/users/
 └── writer@org1.example.com
 ```
 
+**One note to the :ecert suffix.**
+
+The ”:ecert” suffix means that by default the attribute and it's value will be inserted into the identity’s enrollment certificate, which can then be used to make access control decisions.
+
+You can leave this suffix as well. But in this case you have to use the **--enrollment.attrs** option to include some attributes into the enrolled certificate. 
+
+Let's do some experiment.
+```bash
+# register a manager
+fabric-ca-client register --id.name manager --id.secret writerpw --id.type client --id.attrs 'samlinux.manager=true' --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
+
+# enroll the manager
+fabric-ca-client enroll -u https://manager:writerpw@localhost:7054 --caname ca-org1 -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/manager@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem" --enrollment.attrs 'samlinux.manager,hf.Type,hf.EnrollmentID'
+
+# check the certificate
+openssl x509 -in organizations/peerOrganizations/org1.example.com/users/manager@org1.example.com/msp/signcerts/cert.pem -text -noout
+```
+What is your observation ?
 
 ## Inspect signing certs
 
