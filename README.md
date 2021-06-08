@@ -13,3 +13,4 @@ Hyperledger Fabric learning materials.
 | [26.02.2021](./meetup-260221/index.md)| Part 1 - Node.js development; Comparison between Node.js and Golang chaincode.     |
 | [12.03.2021](./meetup-120321/index.md)| Part 2 - Node.js development; Extends part 1 with a couchDb query.     |
 | [26.03.2021](./meetup-260321/index.md)| Part 3 - Node.js development; Access development environment with Node.js SDK.     |
+| [18.06.2021](./meetup-180621/index.md)| Attribute-based access controll (ABAC) with Node.js   |

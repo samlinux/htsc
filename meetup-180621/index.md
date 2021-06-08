@@ -1,18 +1,28 @@
 # Attribute-based access controll (ABAC)
 
 In this lab we are going to implement the following scenario. One organization with two different roles: 
+
 - one for creating and updating assets and
 - one only for reading those assets.
 
+To do so we need at least **three terminals**. I use three different tmux panes in that lab.
 
-First let's start the development test network.
+Start a tmux session.
+```bash
+tmux new -s fabric
+```
+
+First let's start the development test network. Refer to previous labs for more information on getting started with a fabric development network and with tmux panels.
+
 ```bash
 ./devNetwork.sh up -ca
 ```
 
+Now create two more panes. One for starting the chaincode and one for interacting with your chaincode.
+
 ## Register identities with attributes
 
-We will create the identities using the Org1 CA. Set the Fabric CA client home to the MSP of the Org1 CA admin:
+We will create the identities using the predefined Org1 CA. First we have to set the **FABRIC_CA_CLIENT_HOME** environment variable to the MSP of the Org1 CA admin:
 
 ```bash
 # set the path
@@ -22,7 +32,7 @@ export FABRIC_CA_CLIENT_HOME=${PWD}/organizations/peerOrganizations/org1.example
 echo $FABRIC_CA_CLIENT_HOME
 ```
 
-Let's register and enroll two users: writer and reader under the prefix samlinux.
+As a second step we can register and enroll two users: writer and reader under the prefix samlinux. Both new users are defined with an proper attribute **--id.attrs 'samlinux.writer=true:ecert'**.
 
 ```bash
 # register first
@@ -67,7 +77,7 @@ The ”:ecert” suffix means that by default the attribute and it's value will 
 
 You can leave this suffix as well. But in this case you have to use the **--enrollment.attrs** option to include some attributes into the enrolled certificate. 
 
-Let's do some experiment.
+Let's do some experiments to get more familiar with that approach.
 ```bash
 # register a manager
 fabric-ca-client register --id.name manager --id.secret writerpw --id.type client --id.attrs 'samlinux.manager=true' --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
@@ -78,19 +88,21 @@ fabric-ca-client enroll -u https://manager:writerpw@localhost:7054 --caname ca-o
 # check the certificate
 openssl x509 -in organizations/peerOrganizations/org1.example.com/users/manager@org1.example.com/msp/signcerts/cert.pem -text -noout
 ```
-What is your observation ?
+What is your observation?
 
 ## Inspect signing certs
 
 Get a list of all identities.
 ```bash
 fabric-ca-client identity list --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
+```
 
+List one particular identity.
+```bash
 fabric-ca-client identity list --id reader --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 ```
 
 Inspect the signcert form reader.
-
 ```bash
 openssl x509 -in  organizations/peerOrganizations/org1.example.com/users/reader@org1.example.com/msp/signcerts/cert.pem -text -noout
 ```
@@ -143,6 +155,7 @@ Certificate:
 
 ## Start the chaincode
 
+In the second panel start the chaincode.
 ```bash
 cd chaincode/nodejs/cs04
 
@@ -150,6 +163,7 @@ CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME
 ```
 
 ## Testcalls for the chaincode
+In the third panel interact with the chaincode, but first we have to set some envirpnment variables.
 
 ```bash
 # set environment vars
@@ -157,11 +171,12 @@ source org1.sh
 setGlobals
 ```
 
-### Test it
+### Test it the chaincode
 
 Use the **writer** identity first.
 
 ```bash
+# set the CORE_PEER_MSPCONFIGPATH variable to the users MSP 
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/writer@org1.example.com/msp
 
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["set","{\"no\":\"a1\", \"desc\":\"Product number 1\",\"amount\":120, \"price\":\"10.50\", \"type\":\"brick\"}"]}'
@@ -169,6 +184,7 @@ CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 
 
 Use the **reader** identity for the same test.
 ```bash
+# set the CORE_PEER_MSPCONFIGPATH variable to the users MSP 
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/reader@org1.example.com/msp
 
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["set","{\"no\":\"a1\", \"desc\":\"Product number 1\",\"amount\":1000, \"price\":\"10.50\", \"type\":\"brick\"}"]}'
@@ -181,18 +197,23 @@ CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode query -o 127.0.0.1:7050 -C ch1 -
 
 Test with a user without any proper permissions **(User1)**. What is the result?
 ```bash
+# set the CORE_PEER_MSPCONFIGPATH variable to the users MSP 
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp
 ```
 
 ## Modify identities and remove the samlinux.reader attribute
 
 ```bash
+# remove samlinux.reader attribute
 fabric-ca-client identity modify reader --attrs 'samlinux.reader='  --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 
+# add the same attribute
 fabric-ca-client identity modify reader --attrs '"samlinux.reader=true:ecert","samlinux.auditor=true:ecert"' --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 
+# reenroll or enroll it again
 fabric-ca-client reenroll -u https://reader:reader1pw@localhost:7054 --caname ca-org1 -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/reader@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 
+# inspect the signing cert
 openssl x509 -in  organizations/peerOrganizations/org1.example.com/users/reader@org1.example.com/msp/signcerts/cert.pem -text -noout
 ```
 
