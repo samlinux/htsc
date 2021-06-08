@@ -8,3 +8,6 @@ At this point we have two possibilities to use fabric from the development point
 
 1. [Fabric 2.2 Chaincode Devmode Environment - Binary Edition](fabric2DevMode.md)
 2. [Fabric 2.2 Chaincode Devmode Environment - Docker Edition](fabric2DevModeDockerEdition.md)
+
+
+[Index](../README.md)
