@@ -14,6 +14,9 @@ tmux new -s fabric
 
 First let's start the development test network. Refer to previous labs for more information on getting started with a fabric development network and with tmux panels.
 
+The sdg devNetwork is optimized for this lab and not suitable for productive use. It is based on the test-network but reduced for the usage of this course.
+
+
 ```bash
 ./devNetwork.sh up -ca
 ```
