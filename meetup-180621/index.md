@@ -83,6 +83,10 @@ Let's do some experiments to get more familiar with that approach.
 fabric-ca-client register --id.name manager --id.secret writerpw --id.type client --id.attrs 'samlinux.manager=true' --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 
 # enroll the manager
+## without enrollment.attrs
+fabric-ca-client enroll -u https://manager:writerpw@localhost:7054 --caname ca-org1 -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/manager@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem" 
+
+## with enrollment.attrs
 fabric-ca-client enroll -u https://manager:writerpw@localhost:7054 --caname ca-org1 -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/manager@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem" --enrollment.attrs 'samlinux.manager,hf.Type,hf.EnrollmentID'
 
 # check the certificate
@@ -91,6 +95,7 @@ openssl x509 -in organizations/peerOrganizations/org1.example.com/users/manager@
 What is your observation?
 
 ## Inspect signing certs
+Some further useful commands.
 
 Get a list of all identities.
 ```bash
