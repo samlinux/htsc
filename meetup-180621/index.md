@@ -5,14 +5,14 @@ In this lab we are going to implement the following scenario. One organization w
 - one for creating and updating assets and
 - one only for reading those assets.
 
-To do so we need at least **three terminals**. I use three different tmux panes in that lab.
+For that we need at least **three terminals**. I use three different tmux panes in that lab.
 
 Start a tmux session.
 ```bash
 tmux new -s fabric
 ```
 
-First let's start the development test network. Refer to previous labs for more information on getting started with a fabric development network and with tmux panels.
+Let's start the development test network. Refer to previous labs for more information on getting started with a fabric development network and with tmux panels.
 
 The sdg devNetwork is optimized for this lab and not suitable for productive use. It is based on the test-network but reduced for the usage of this course.
 
@@ -21,11 +21,11 @@ The sdg devNetwork is optimized for this lab and not suitable for productive use
 ./devNetwork.sh up -ca
 ```
 
-Now create two more panes. One for starting the chaincode and one for interacting with your chaincode.
+Now, create two more panes - one for starting the chaincode and one for interacting with your chaincode.
 
 ## Register identities with attributes
 
-We will create the identities using the predefined Org1 CA. First we have to set the **FABRIC_CA_CLIENT_HOME** environment variable to the MSP of the Org1 CA admin:
+We will create the identities using the predefined Org1 CA. Firstly, we have to set the **FABRIC_CA_CLIENT_HOME** environment variable to the MSP of the Org1 CA admin:
 
 ```bash
 # set the path
@@ -35,7 +35,7 @@ export FABRIC_CA_CLIENT_HOME=${PWD}/organizations/peerOrganizations/org1.example
 echo $FABRIC_CA_CLIENT_HOME
 ```
 
-As a second step we can register and enroll two users: writer and reader under the prefix samlinux. Both new users are defined with an proper attribute **--id.attrs 'samlinux.writer=true:ecert'**.
+Secondly, we can register and enroll two users: writer and reader under the prefix samlinux. Both new users are defined with a proper attribute **--id.attrs 'samlinux.writer=true:ecert'**.
 
 ```bash
 # register first
@@ -53,7 +53,7 @@ fabric-ca-client enroll -u https://writer:writerpw@localhost:7054 --caname ca-or
 fabric-ca-client enroll -u https://reader:readerpw@localhost:7054 --caname ca-org1 -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/reader@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 ```
 
-Now that we have enrolled the identity, run the command below to copy the Node OU configuration file into the creator1 MSP folder.
+Now, as you have enrolled the identity, run the command below to copy the Node OU configuration file into the creator1 MSP folder.
 
 ```bash
 cp "${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml" "${PWD}/organizations/peerOrganizations/org1.example.com/users/writer@org1.example.com/msp/config.yaml"
@@ -76,7 +76,7 @@ organizations/peerOrganizations/org1.example.com/users/
 
 **One note to the :ecert suffix.**
 
-The ”:ecert” suffix means that by default the attribute and it's value will be inserted into the identity’s enrollment certificate, which can then be used to make access control decisions.
+The ”:ecert” suffix means that by default the attribute and it's value will be inserted into the identity’s enrollment certificate which can then be used to make access control decisions.
 
 You can leave this suffix as well. But in this case you have to use the **--enrollment.attrs** option to include some attributes into the enrolled certificate. 
 
@@ -171,7 +171,7 @@ CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME
 ```
 
 ## Testcalls for the chaincode
-In the third panel interact with the chaincode, but first we have to set some envirpnment variables.
+In the third panel interact with the chaincode, but first you have to set some environment variables.
 
 ```bash
 # set environment vars
@@ -179,7 +179,7 @@ source org1.sh
 setGlobals
 ```
 
-### Test it the chaincode
+### Test the chaincode
 
 Use the **writer** identity first.
 
@@ -198,7 +198,7 @@ export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.examp
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["set","{\"no\":\"a1\", \"desc\":\"Product number 1\",\"amount\":1000, \"price\":\"10.50\", \"type\":\"brick\"}"]}'
 ```
 
-The **reader** should be allowed only reading not invoking.
+The **reader** should be allowed only reading, not invoking.
 ```bash
 CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode query -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["get","a1"]}'
 ```
