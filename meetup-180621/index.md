@@ -225,4 +225,6 @@ fabric-ca-client reenroll -u https://reader:reader1pw@localhost:7054 --caname ca
 openssl x509 -in  organizations/peerOrganizations/org1.example.com/users/reader@org1.example.com/msp/signcerts/cert.pem -text -noout
 ```
 
+[Try the challenge](./challenge-01.md)
+
 [Index](../README.md)
