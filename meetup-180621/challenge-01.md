@@ -53,7 +53,13 @@ tree -L 1 organizations/peerOrganizations/org1.example.com/users/
 
 Try and play with the chaincode.
 ```bash
+
+# use Org1 env vars
 setGlobals 1
+
+# export path to fabric config
+export FABRIC_CFG_PATH=../config/
+
 # set the CORE_PEER_MSPCONFIGPATH variable to the users MSP 
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/writer@org1.example.com/msp
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp
