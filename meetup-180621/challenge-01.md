@@ -11,18 +11,24 @@ cd fabric-samples/test-network
 ./network.sh up createChannel -c channel1 -ca
 
 # Install the chaincode
-./network.sh createChannel -c channel1 -ca 
 ./network.sh deployCC -c channel1 -ccn cs04 -ccl javascript -ccv 1 -ccs 1 -ccp ../../sdg-dev-network/chaincode/nodejs/cs04/ 
 
 # set env peer0 Org1
 . ./scripts/envVar.sh
-setGlobals 1
-
-# set env one peer0 Org2
-setGlobals 2
 
 # show if some containers are running
-docker ps
+docker ps --format "{{.ID}} {{.Names}}"
+
+988f8aea5734 dev-peer0.org2.example.com-cs04_1-8bb43bb8d3c64721968bc157979cd5ef6e0098759421c2703f935676921e815f
+e87e590c76c0 dev-peer0.org1.example.com-cs04_1-8bb43bb8d3c64721968bc157979cd5ef6e0098759421c2703f935676921e815f
+160f5b00bdd9 cli
+96be768b2027 orderer.example.com
+8946a2b5b7e5 peer0.org2.example.com
+6e26aa81cf71 peer0.org1.example.com
+027805fe332a ca_org2
+380834ba12b9 ca_orderer
+816606a4c959 ca_org1
+
 ```
 
 Try to use the chaincode example. Register and enroll the identities.
